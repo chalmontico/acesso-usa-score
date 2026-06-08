@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=DM+Sans:wght@200;300;400;500;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --black: #060810;
+  --dark: #0D0F18;
+  --surface: #111420;
+  --blue: #1E6FFF;
+  --blue-light: #3FA9F5;
+  --blue-dark: #0A3D91;
+  --white: #F0F4FF;
+  --white-dim: rgba(240,244,255,0.7);
+  --white-muted: rgba(240,244,255,0.35);
+  --blue-glow: rgba(30,111,255,0.25);
+  --grad-blue: linear-gradient(135deg,#0A3D91 0%,#1E6FFF 50%,#3FA9F5 100%);
+  --grad-btn: linear-gradient(135deg,#1252CC 0%,#2178FF 100%);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:'DM Sans',sans-serif;font-weight:300;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");opacity:0.022;pointer-events:none;z-index:9999}
+
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--black)}
+::-webkit-scrollbar-thumb{background:var(--blue-dark);border-radius:2px}
+
+.grad-text{background:var(--grad-blue);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+.btn-primary{font-size:0.65rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:#fff;background:var(--grad-btn);border:none;padding:1rem 2.5rem;cursor:pointer;border-radius:2px;box-shadow:0 4px 24px var(--blue-glow);transition:box-shadow 0.3s,transform 0.2s;display:inline-block;font-family:'DM Sans',sans-serif}
+.btn-primary:hover{box-shadow:0 8px 40px rgba(30,111,255,0.45);transform:translateY(-2px)}
+
+.btn-ghost{font-size:0.65rem;font-weight:400;letter-spacing:0.2em;text-transform:uppercase;color:var(--white-dim);background:transparent;border:1px solid rgba(30,111,255,0.3);padding:1rem 2.5rem;cursor:pointer;border-radius:2px;transition:border-color 0.3s,color 0.3s;display:inline-block;font-family:'DM Sans',sans-serif}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue-light)}
+
+.section-tag{font-size:0.6rem;font-weight:600;letter-spacing:0.35em;text-transform:uppercase;color:var(--blue-light);margin-bottom:1.2rem;display:flex;align-items:center;gap:0.8rem}
+.section-tag::before{content:'';display:block;width:24px;height:2px;background:var(--grad-btn);border-radius:2px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulseDot{0%,100%{opacity:0.4;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes flowAnim{from{stroke-dashoffset:0}to{stroke-dashoffset:-200}}
+@keyframes pulseGlow{from{opacity:0.5;transform:scale(1)}to{opacity:1;transform:scale(1.15)}}
+@keyframes scrollDrop{0%{top:-10px;opacity:0}30%{opacity:1}100%{top:55px;opacity:0}}
+@keyframes infOrbit{from{stroke-dashoffset:0}to{stroke-dashoffset:-1000}}
+@keyframes flagWave{0%,100%{transform:skewX(0deg)}25%{transform:skewX(-1deg)}75%{transform:skewX(1deg)}}
