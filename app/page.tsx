@@ -245,7 +245,7 @@ export default function Home() {
           <div style={{fontSize:'0.85rem',color:'rgba(240,244,255,0.35)',textDecoration:'line-through',marginBottom:'0.5rem'}}>US$297</div>
           <div style={{fontFamily:'Inter,sans-serif',fontSize:'clamp(3rem,7vw,6rem)',fontWeight:200,letterSpacing:'-0.05em',lineHeight:1,background:'linear-gradient(135deg,#0A3D91,#1E6FFF,#3FA9F5)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',marginBottom:'0.5rem'}}>US$197</div>
           <div style={{fontSize:'0.7rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'rgba(240,244,255,0.35)',marginBottom:'3rem'}}>por empresa · sessão única</div>
-          <button className="btn-primary" style={{fontSize:'0.68rem',padding:'1.1rem 3rem'}}>Agendar minha reunião</button>
+          <a href="https://calendly.com/acessoo/45" target="_blank" rel="noopener noreferrer" className="btn-primary" style={{fontSize:'0.68rem',padding:'1.1rem 3rem',textDecoration:'none'}}>Agendar minha reunião</a>
           <p style={{marginTop:'1.2rem',fontSize:'0.72rem',color:'rgba(240,244,255,0.35)'}}>Vagas limitadas · Sem juridiquês · Orientação estratégica real</p>
         </div>
       </section>
