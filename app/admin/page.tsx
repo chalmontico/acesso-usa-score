@@ -41,6 +41,11 @@ export default function Admin() {
     setLeads(l => l.map(lead => lead.id === id ? { ...lead, status } : lead))
   }
 
+  // Extrai dados do campo respostas (JSON)
+  function getField(lead: any, field: string) {
+    return lead[field] || lead.respostas?.[field] || '—'
+  }
+
   const s = { black:'#060810', surface:'#111420', blue:'#1E6FFF', blueLight:'#3FA9F5', white:'#F0F4FF', whiteDim:'rgba(240,244,255,0.7)', whiteMuted:'rgba(240,244,255,0.35)' }
 
   if (!authed) return (
@@ -58,7 +63,7 @@ export default function Admin() {
           style={{width:'100%',background:'rgba(6,8,16,0.7)',border:'1px solid rgba(30,111,255,0.15)',borderRadius:'2px',padding:'0.85rem 1rem',color:s.white,fontFamily:'DM Sans,sans-serif',fontSize:'0.9rem',outline:'none',marginBottom:'1rem'}}
         />
         {error && <p style={{fontSize:'0.75rem',color:'#FCA5A5',marginBottom:'1rem'}}>{error}</p>}
-        <button className="btn-primary" style={{width:'100%',textAlign:'center'}} onClick={login} disabled={loading}>
+        <button onClick={login} disabled={loading} style={{width:'100%',background:'linear-gradient(135deg,#0A3D91,#1E6FFF)',border:'none',borderRadius:'2px',padding:'0.85rem',color:'white',fontFamily:'DM Sans,sans-serif',fontSize:'0.8rem',letterSpacing:'0.1em',textTransform:'uppercase',cursor:'pointer'}}>
           {loading ? 'Entrando...' : 'Entrar'}
         </button>
       </div>
@@ -66,20 +71,19 @@ export default function Admin() {
   )
 
   const total = leads.length
-  const novos = leads.filter(l => l.status === 'novo').length
+  const novos = leads.filter(l => !l.status || l.status === 'novo').length
   const fechados = leads.filter(l => l.status === 'fechado').length
-  const avgScore = leads.length > 0 ? Math.round(leads.reduce((acc, l) => acc + (l.diagnosticos?.[0]?.score_total || 0), 0) / leads.length) : 0
+  const avgScore = leads.length > 0 ? Math.round(leads.reduce((acc, l) => acc + (l.score || 0), 0) / leads.length) : 0
 
   return (
     <div style={{minHeight:'100vh',background:s.black,padding:'2rem 1.5rem'}}>
-      {/* Header */}
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'2rem',flexWrap:'wrap',gap:'1rem'}}>
         <div style={{display:'flex',alignItems:'center',gap:'0.3rem'}}>
           <span style={{fontFamily:'Inter,sans-serif',fontSize:'1.1rem',fontWeight:300,color:s.white}}>Acesso</span>
           <span style={{fontFamily:'Inter,sans-serif',fontSize:'1.1rem',fontWeight:600,background:'linear-gradient(135deg,#0A3D91,#1E6FFF,#3FA9F5)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>USA</span>
           <span style={{fontSize:'0.65rem',letterSpacing:'0.2em',textTransform:'uppercase',color:s.whiteMuted,marginLeft:'0.8rem'}}>Admin</span>
         </div>
-        <button className="btn-ghost" style={{fontSize:'0.62rem',padding:'0.6rem 1.2rem'}} onClick={() => setAuthed(false)}>Sair</button>
+        <button onClick={() => setAuthed(false)} style={{background:'none',border:'1px solid rgba(30,111,255,0.2)',borderRadius:'2px',padding:'0.5rem 1rem',color:s.whiteMuted,fontSize:'0.72rem',letterSpacing:'0.1em',textTransform:'uppercase',cursor:'pointer'}}>Sair</button>
       </div>
 
       {/* Stats */}
@@ -107,33 +111,31 @@ export default function Admin() {
               </tr>
             </thead>
             <tbody>
-              {leads.map(lead => {
-                const diag = lead.diagnosticos?.[0]
-                return (
-                  <tr key={lead.id} style={{borderBottom:'1px solid rgba(30,111,255,0.05)',cursor:'pointer',transition:'background 0.2s'}}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background='rgba(30,111,255,0.04)'}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background='transparent'}
-                    onClick={() => setSelected(selected?.id===lead.id?null:lead)}>
-                    <td style={{padding:'1rem 1.2rem',fontSize:'0.82rem',color:s.white,fontWeight:400}}>{lead.nome}</td>
-                    <td style={{padding:'1rem 1.2rem',fontSize:'0.82rem',color:s.whiteDim}}>{lead.empresa}</td>
-                    <td style={{padding:'1rem 1.2rem',fontSize:'0.78rem',color:s.whiteMuted}}>{lead.segmento}</td>
-                    <td style={{padding:'1rem 1.2rem'}}>
-                      {diag ? <span style={{fontFamily:'Inter,sans-serif',fontSize:'1rem',fontWeight:300,background:'linear-gradient(135deg,#0A3D91,#1E6FFF,#3FA9F5)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>{diag.score_total}</span> : <span style={{color:s.whiteMuted}}>—</span>}
-                    </td>
-                    <td style={{padding:'1rem 1.2rem',fontSize:'0.75rem',color:s.whiteDim}}>{diag?.nivel_label || '—'}</td>
-                    <td style={{padding:'1rem 1.2rem'}} onClick={e => e.stopPropagation()}>
-                      <select
-                        value={lead.status}
-                        onChange={e => updateStatus(lead.id, e.target.value)}
-                        style={{background:'rgba(6,8,16,0.8)',border:`1px solid ${STATUS_COLORS[lead.status]}40`,borderRadius:'2px',padding:'0.3rem 0.6rem',color:STATUS_COLORS[lead.status],fontSize:'0.72rem',cursor:'pointer',outline:'none'}}
-                      >
-                        {STATUS_OPTIONS.map(opt => <option key={opt} value={opt}>{STATUS_LABELS[opt]}</option>)}
-                      </select>
-                    </td>
-                    <td style={{padding:'1rem 1.2rem',fontSize:'0.72rem',color:s.whiteMuted}}>{new Date(lead.created_at).toLocaleDateString('pt-BR')}</td>
-                  </tr>
-                )
-              })}
+              {leads.map(lead => (
+                <tr key={lead.id}
+                  style={{borderBottom:'1px solid rgba(30,111,255,0.05)',cursor:'pointer',transition:'background 0.2s'}}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background='rgba(30,111,255,0.04)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background='transparent'}
+                  onClick={() => setSelected(selected?.id===lead.id?null:lead)}>
+                  <td style={{padding:'1rem 1.2rem',fontSize:'0.82rem',color:s.white}}>{lead.name || getField(lead,'nome')}</td>
+                  <td style={{padding:'1rem 1.2rem',fontSize:'0.82rem',color:s.whiteDim}}>{getField(lead,'empresa')}</td>
+                  <td style={{padding:'1rem 1.2rem',fontSize:'0.78rem',color:s.whiteMuted}}>{getField(lead,'segmento')}</td>
+                  <td style={{padding:'1rem 1.2rem'}}>
+                    {lead.score ? <span style={{fontFamily:'Inter,sans-serif',fontSize:'1rem',fontWeight:300,background:'linear-gradient(135deg,#0A3D91,#1E6FFF,#3FA9F5)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>{lead.score}</span> : <span style={{color:s.whiteMuted}}>—</span>}
+                  </td>
+                  <td style={{padding:'1rem 1.2rem',fontSize:'0.75rem',color:s.whiteDim}}>{lead.nivel || '—'}</td>
+                  <td style={{padding:'1rem 1.2rem'}} onClick={e => e.stopPropagation()}>
+                    <select
+                      value={lead.status || 'novo'}
+                      onChange={e => updateStatus(lead.id, e.target.value)}
+                      style={{background:'rgba(6,8,16,0.8)',border:`1px solid ${STATUS_COLORS[lead.status||'novo']}40`,borderRadius:'2px',padding:'0.3rem 0.6rem',color:STATUS_COLORS[lead.status||'novo'],fontSize:'0.72rem',cursor:'pointer',outline:'none'}}
+                    >
+                      {STATUS_OPTIONS.map(opt => <option key={opt} value={opt}>{STATUS_LABELS[opt]}</option>)}
+                    </select>
+                  </td>
+                  <td style={{padding:'1rem 1.2rem',fontSize:'0.72rem',color:s.whiteMuted}}>{new Date(lead.created_at).toLocaleDateString('pt-BR')}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
           {leads.length === 0 && (
@@ -147,13 +149,22 @@ export default function Admin() {
         <div style={{marginTop:'1.5rem',background:s.surface,border:'1px solid rgba(30,111,255,0.15)',borderRadius:'4px',padding:'2rem'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'1.5rem'}}>
             <div>
-              <h3 style={{fontFamily:'Inter,sans-serif',fontSize:'1.2rem',fontWeight:200,letterSpacing:'-0.02em'}}>{selected.nome}</h3>
+              <h3 style={{fontFamily:'Inter,sans-serif',fontSize:'1.2rem',fontWeight:200}}>{selected.name || getField(selected,'nome')}</h3>
               <p style={{fontSize:'0.75rem',color:s.whiteMuted,marginTop:'0.2rem'}}>{selected.email} · {selected.whatsapp}</p>
             </div>
             <button onClick={() => setSelected(null)} style={{background:'none',border:'none',color:s.whiteMuted,fontSize:'1.2rem',cursor:'pointer'}}>✕</button>
           </div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'1rem',fontSize:'0.8rem'}}>
-            {[['Empresa',selected.empresa],['Segmento',selected.segmento],['Cidade',selected.cidade||'—'],['WhatsApp',selected.whatsapp],['E-mail',selected.email],['Status',STATUS_LABELS[selected.status]]].map(([k,v]) => (
+            {[
+              ['Empresa', getField(selected,'empresa')],
+              ['Segmento', getField(selected,'segmento')],
+              ['WhatsApp', selected.whatsapp || '—'],
+              ['E-mail', selected.email || '—'],
+              ['Score', selected.score || '—'],
+              ['Nível', selected.nivel || '—'],
+              ['Status', STATUS_LABELS[selected.status||'novo']],
+              ['Data', new Date(selected.created_at).toLocaleDateString('pt-BR')],
+            ].map(([k,v]) => (
               <div key={k as string}>
                 <span style={{fontSize:'0.6rem',letterSpacing:'0.15em',textTransform:'uppercase',color:s.whiteMuted,display:'block',marginBottom:'0.2rem'}}>{k as string}</span>
                 <span style={{color:s.white}}>{v as string}</span>
