@@ -115,22 +115,15 @@ export default function Quiz() {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
       setLoading(true)
-      
       const score = calcScore(answers)
       const nivel = getNivel(score)
-      
-      // Salva resultado local PRIMEIRO — usuário nunca espera
       const resultado = { score, nivel, answers }
       localStorage.setItem('acesso_resultado', JSON.stringify(resultado))
-      
-      // Salva no banco em segundo plano (sem bloquear)
       fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ answers, score, nivel })
-      }).catch(() => {}) // ignora erro silenciosamente
-      
-      // Vai direto para resultado
+      }).catch(() => {})
       router.push('/resultado')
     }
   }
@@ -139,7 +132,7 @@ export default function Quiz() {
 
   if (loading) return (
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:s.black,padding:'2rem',textAlign:'center'}}>
-      <div style={{width:'48px',height:'48px',border:`2px solid rgba(30,111,255,0.2)`,borderTopColor:s.blue,borderRadius:'50%',animation:'spin 1s linear infinite',marginBottom:'2rem'}}></div>
+      <div style={{width:'48px',height:'48px',border:'2px solid rgba(30,111,255,0.2)',borderTopColor:s.blue,borderRadius:'50%',animation:'spin 1s linear infinite',marginBottom:'2rem'}}></div>
       <h2 style={{fontFamily:'Inter,sans-serif',fontSize:'1.8rem',fontWeight:200,letterSpacing:'-0.03em',marginBottom:'1rem'}}>Analisando sua empresa</h2>
       <p style={{color:s.whiteMuted,fontSize:'0.85rem',letterSpacing:'0.05em'}}>Gerando seu diagnóstico personalizado...</p>
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
@@ -176,4 +169,56 @@ export default function Quiz() {
             <label style={{display:'block',fontSize:'0.62rem',fontWeight:600,letterSpacing:'0.15em',textTransform:'uppercase',color:s.whiteMuted,marginBottom:'0.5rem'}}>{f.label}</label>
             <input
               type={f.type||'text'} placeholder={f.placeholder}
-              value={answers
+              value={answers[f.key]||''}
+              onChange={e => setAns(f.key, e.target.value)}
+              style={{width:'100%',background:'rgba(6,8,16,0.7)',border:'1px solid rgba(30,111,255,0.15)',borderRadius:'2px',padding:'0.85rem 1rem',color:s.white,fontFamily:'DM Sans,sans-serif',fontSize:'0.9rem',outline:'none',transition:'border-color 0.2s'}}
+              onFocus={e => e.target.style.borderColor=s.blue}
+              onBlur={e => e.target.style.borderColor='rgba(30,111,255,0.15)'}
+            />
+          </div>
+        ))}
+
+        {cur.type === 'questions' && (cur as any).questions.map((q: any, qi: number) => (
+          <div key={q.key} style={{marginBottom:'2rem'}}>
+            <p style={{fontSize:'0.85rem',fontWeight:400,marginBottom:'0.8rem',lineHeight:1.5,color:s.white}}>
+              <span style={{color:s.blueLight,marginRight:'0.5rem',fontSize:'0.65rem',letterSpacing:'0.1em'}}>{String(qi+1).padStart(2,'0')}</span>
+              {q.label}
+            </p>
+            {q.options.map((opt: string) => (
+              <button key={opt} onClick={() => setAns(q.key, opt)} style={{
+                width:'100%',textAlign:'left',
+                background:answers[q.key]===opt?'rgba(30,111,255,0.1)':'rgba(6,8,16,0.5)',
+                border:`1px solid ${answers[q.key]===opt?s.blue:'rgba(30,111,255,0.12)'}`,
+                borderRadius:'2px',padding:'0.9rem 1rem',
+                color:answers[q.key]===opt?s.white:s.whiteDim,
+                fontFamily:'DM Sans,sans-serif',fontSize:'0.85rem',
+                cursor:'pointer',transition:'all 0.2s',
+                display:'flex',alignItems:'center',gap:'0.8rem',marginBottom:'0.5rem'
+              }}>
+                <div style={{width:'18px',height:'18px',borderRadius:'50%',border:`1.5px solid ${answers[q.key]===opt?s.blue:'rgba(30,111,255,0.25)'}`,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',background:answers[q.key]===opt?s.blue:'transparent'}}>
+                  {answers[q.key]===opt && <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>}
+                </div>
+                {opt}
+              </button>
+            ))}
+          </div>
+        ))}
+
+        {error && <div style={{padding:'0.8rem 1rem',background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.25)',borderRadius:'2px',color:'#FCA5A5',fontSize:'0.8rem',marginBottom:'1.2rem'}}>{error}</div>}
+
+        <div style={{display:'flex',justifyContent:'space-between',marginTop:'1rem'}}>
+          {step > 0 ? (
+            <button onClick={() => setStep(s => s-1)} style={{background:'none',border:'none',color:s.whiteMuted,fontSize:'0.75rem',letterSpacing:'0.1em',cursor:'pointer',textTransform:'uppercase'}}>← Voltar</button>
+          ) : <div/>}
+          <button onClick={handleNext} style={{background:'linear-gradient(135deg,#0A3D91,#1E6FFF)',border:'none',borderRadius:'2px',padding:'0.85rem 2rem',color:'white',fontFamily:'DM Sans,sans-serif',fontSize:'0.8rem',letterSpacing:'0.1em',textTransform:'uppercase',cursor:'pointer'}}>
+            {step === STEPS.length-1 ? 'Ver meu diagnóstico →' : 'Continuar →'}
+          </button>
+        </div>
+      </div>
+
+      <p style={{marginTop:'1.5rem',fontSize:'0.65rem',color:s.whiteMuted,maxWidth:'580px',textAlign:'center',lineHeight:1.6}}>
+        Suas informações são confidenciais e utilizadas apenas para gerar seu diagnóstico.
+      </p>
+    </div>
+  )
+}
