@@ -9,15 +9,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?order=created_at.desc`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`
-    }
-  })
-
-  const data = await res.json()
-  return NextResponse.json({ data: Array.isArray(data) ? data : [] })
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?order=created_at.desc`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    })
+    const data = await res.json()
+    return NextResponse.json({ data: Array.isArray(data) ? data : [] })
+  } catch (err) {
+    return NextResponse.json({ error: String(err), data: [] }, { status: 500 })
+  }
 }
 
 export async function PATCH(req: NextRequest) {
@@ -26,19 +29,21 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { id, status } = await req.json()
-
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${id}`, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    },
-    body: JSON.stringify({ status })
-  })
-
-  const data = await res.json()
-  return NextResponse.json({ success: true, data })
+  try {
+    const { id, status } = await req.json()
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify({ status })
+    })
+    const data = await res.json()
+    return NextResponse.json({ success: true, data })
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 })
+  }
 }
