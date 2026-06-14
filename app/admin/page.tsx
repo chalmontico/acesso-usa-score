@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 
-const SUPABASE_URL = 'https://gedqamkcffteuhlvrabo.supabase.co'
+const SUPABASE_URL = 'https://gedqamkcflteuhlvrabo.supabase.co'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlZHFhbWtjZmx0ZXVobHZyYWJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NzU3NjAsImV4cCI6MjA5NjQ1MTc2MH0.AKt8e8JPUgZPanBwOog2aJDLBcD3zNHKp7c9TTB2878'
 
 const STATUS_OPTIONS = ['novo','contato_feito','reuniao_agendada','proposta_enviada','fechado','perdido']
