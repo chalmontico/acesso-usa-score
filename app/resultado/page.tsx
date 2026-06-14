@@ -19,40 +19,69 @@ export default function Resultado() {
     </div>
   )
 
-  const { score, resumo_ia, riscos, passos, answers } = data
-  const s = { black:'#060810',dark:'#0D0F18',surface:'#111420',blue:'#1E6FFF',blueLight:'#3FA9F5',white:'#F0F4FF',whiteDim:'rgba(240,244,255,0.7)',whiteMuted:'rgba(240,244,255,0.35)' }
+  const { score, nivel, answers } = data
+  const s = { black:'#060810',surface:'#111420',blue:'#1E6FFF',blueLight:'#3FA9F5',white:'#F0F4FF',whiteDim:'rgba(240,244,255,0.7)',whiteMuted:'rgba(240,244,255,0.35)' }
 
-  const nivelColors: Record<number,string> = { 1:'#EF4444', 2:'#F59E0B', 3:'#3B82F6', 4:'#22C55E' }
-  const cor = nivelColors[score.nivel] || s.blue
+  const getCor = (n: string) => {
+    if (n === 'Pronto para Expandir') return '#22C55E'
+    if (n === 'Em Desenvolvimento') return '#3B82F6'
+    if (n === 'Iniciando Jornada') return '#F59E0B'
+    return '#EF4444'
+  }
+  const cor = getCor(nivel)
   const circ = 2 * Math.PI * 44
-  const dash = circ - (score.total / 100) * circ
+  const dash = circ - (score / 100) * circ
 
-  const roadmap = [
-    ['01','Proteção de Marca','Pesquisa no USPTO, avaliação de risco de conflito e conexão com advogado licenciado nos EUA quando necessário.'],
-    ['02','Estrutura Americana','Definição entre LLC ou Corporation, abertura, EIN, endereço comercial e conta bancária nos EUA.'],
-    ['03','Entrada Comercial','Posicionamento, site em inglês, oferta adaptada e estratégia de aquisição de clientes americanos.'],
-    ['04','Conexões Estratégicas','Networking, eventos nos EUA, Acesso Black e rodadas de negócios com empresários americanos.'],
-  ]
+  // Calcula categorias baseado nas respostas
+  const sim = (k: string) => answers?.[k] === 'Sim'
+  const marcaScore = (sim('marca_brasil') ? 7 : 0) + (sim('marca_pesquisou_eua') ? 13 : 0)
+  const estruturaScore = (sim('empresa_eua') ? 12 : 0) + (sim('ein') ? 4 : 0) + (sim('conta_eua') ? 4 : 0)
+  const financeiroScore = answers?.faturamento === 'Acima de R$20 milhões' ? 15 : answers?.faturamento === 'R$5 milhões a R$20 milhões' ? 12 : answers?.faturamento === 'R$1 milhão a R$5 milhões' ? 8 : answers?.faturamento === 'R$500 mil a R$1 milhão' ? 4 : 0
+  const produtoScore = (sim('vende_fora') ? 5 : 0) + (sim('clientes_eua') ? 5 : 0) + (answers?.produto_americanos === 'Sim' ? 5 : 0)
+  const comercialScore = (sim('site_profissional') ? 4 : 0) + (sim('equipe_comercial') ? 3 : 0) + (sim('material_ingles') ? 4 : 0) + (sim('fala_ingles') ? 4 : 0)
+  const timingScore = (sim('visitou_eua') ? 8 : 0) + (answers?.prazo === '0 a 3 meses' ? 7 : answers?.prazo === '3 a 6 meses' ? 5 : 3)
 
   const categories = [
-    ['Marca e Proteção', score.marca, 20],
-    ['Estrutura Americana', score.estrutura, 20],
-    ['Cap. Financeira', score.financeiro, 15],
-    ['Produto Internacional', score.produto, 15],
-    ['Estrutura Comercial', score.comercial, 15],
-    ['Timing e Intenção', score.timing, 15],
+    ['Marca e Proteção', marcaScore, 20],
+    ['Estrutura Americana', estruturaScore, 20],
+    ['Cap. Financeira', Math.min(financeiroScore, 15), 15],
+    ['Produto Internacional', Math.min(produtoScore, 15), 15],
+    ['Estrutura Comercial', Math.min(comercialScore, 15), 15],
+    ['Timing e Intenção', Math.min(timingScore, 15), 15],
+  ]
+
+  // Riscos baseados nas respostas
+  const riscos = []
+  if (!sim('marca_brasil')) riscos.push('Marca não registrada no Brasil — risco de conflito ao expandir para os EUA.')
+  if (!sim('marca_pesquisou_eua')) riscos.push('Disponibilidade da marca nos EUA não verificada — pode haver conflito com marcas existentes.')
+  if (!sim('empresa_eua')) riscos.push('Sem estrutura jurídica nos EUA — necessário abrir LLC ou Corporation para operar legalmente.')
+  if (!sim('conta_eua')) riscos.push('Sem conta bancária nos EUA — dificulta recebimentos e operações financeiras americanas.')
+  if (!sim('material_ingles')) riscos.push('Sem materiais em inglês — limita a capacidade de conquistar clientes americanos.')
+
+  // Passos baseados nas respostas
+  const passos = []
+  if (!sim('marca_pesquisou_eua')) passos.push('Pesquise a disponibilidade da sua marca no USPTO (uspto.gov) antes de qualquer investimento.')
+  if (!sim('empresa_eua')) passos.push('Abra uma LLC nos EUA — processo pode ser feito remotamente em 2-4 semanas.')
+  if (!sim('ein')) passos.push('Solicite o EIN (número fiscal americano) junto ao IRS — necessário para abrir conta bancária.')
+  if (!sim('material_ingles')) passos.push('Crie versões em inglês do seu site e materiais de vendas adaptados ao mercado americano.')
+  passos.push('Agende uma reunião estratégica com a Acesso USA para definir seu plano de entrada personalizado.')
+
+  const roadmap = [
+    ['01','Proteção de Marca','Pesquisa no USPTO, avaliação de risco e conexão com advogado licenciado nos EUA.'],
+    ['02','Estrutura Americana','Definição entre LLC ou Corporation, abertura, EIN e conta bancária nos EUA.'],
+    ['03','Entrada Comercial','Posicionamento, site em inglês, oferta adaptada e estratégia de aquisição de clientes.'],
+    ['04','Conexões Estratégicas','Networking, eventos nos EUA, Acesso Black e rodadas de negócios com empresários americanos.'],
   ]
 
   return (
     <div style={{minHeight:'100vh',background:s.black,padding:'2rem 1.5rem'}}>
-      {/* Header */}
       <div style={{textAlign:'center',marginBottom:'3rem',maxWidth:'720px',margin:'0 auto 3rem'}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'2rem'}}>
           <span style={{fontFamily:'Inter,sans-serif',fontSize:'1.1rem',fontWeight:300,color:s.white}}>Acesso</span>
           <span style={{fontFamily:'Inter,sans-serif',fontSize:'1.1rem',fontWeight:600,background:'linear-gradient(135deg,#0A3D91,#1E6FFF,#3FA9F5)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',marginLeft:'0.3rem'}}>USA</span>
         </div>
         <p style={{fontSize:'0.6rem',letterSpacing:'0.35em',textTransform:'uppercase',color:s.whiteMuted,marginBottom:'0.8rem'}}>Diagnóstico completo</p>
-        <h1 style={{fontFamily:'Inter,sans-serif',fontSize:'clamp(1.6rem,4vw,2.8rem)',fontWeight:200,letterSpacing:'-0.03em',marginBottom:'0.5rem'}}>{answers?.empresa}</h1>
+        <h1 style={{fontFamily:'Inter,sans-serif',fontSize:'clamp(1.6rem,4vw,2.8rem)',fontWeight:200,letterSpacing:'-0.03em',marginBottom:'0.5rem'}}>{answers?.nome || answers?.empresa}</h1>
         <p style={{fontSize:'0.75rem',color:s.whiteMuted}}>{answers?.segmento} · {new Date().toLocaleDateString('pt-BR')}</p>
       </div>
 
@@ -67,14 +96,13 @@ export default function Resultado() {
                   strokeDasharray={circ} strokeDashoffset={dash} style={{transition:'stroke-dashoffset 2s ease'}}/>
               </svg>
               <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
-                <span style={{fontFamily:'Inter,sans-serif',fontSize:'2.8rem',fontWeight:200,letterSpacing:'-0.05em',color:s.white,lineHeight:1}}>{score.total}</span>
+                <span style={{fontFamily:'Inter,sans-serif',fontSize:'2.8rem',fontWeight:200,letterSpacing:'-0.05em',color:s.white,lineHeight:1}}>{score}</span>
                 <span style={{fontSize:'0.6rem',letterSpacing:'0.2em',textTransform:'uppercase',color:s.whiteMuted}}>score</span>
               </div>
             </div>
             <div style={{display:'inline-flex',alignItems:'center',gap:'0.5rem',padding:'0.4rem 1rem',borderRadius:'100px',border:`1px solid ${cor}40`,background:`${cor}15`,fontSize:'0.65rem',fontWeight:600,letterSpacing:'0.1em',textTransform:'uppercase',color:cor}}>
-              Nível {score.nivel}: {score.nivel_label}
+              {nivel}
             </div>
-            {resumo_ia && <p style={{fontSize:'0.85rem',color:s.whiteDim,lineHeight:1.8,maxWidth:'540px',textAlign:'center'}}>{resumo_ia}</p>}
           </div>
         </div>
 
@@ -93,19 +121,21 @@ export default function Resultado() {
         </div>
 
         {/* Riscos */}
-        <div style={{background:s.surface,border:'1px solid rgba(30,111,255,0.1)',borderRadius:'4px',padding:'2rem',marginBottom:'1rem'}}>
-          <p style={{fontSize:'0.6rem',letterSpacing:'0.25em',textTransform:'uppercase',color:s.whiteMuted,marginBottom:'1.2rem'}}>⚠ Principais riscos identificados</p>
-          {riscos?.map((r: string, i: number) => (
-            <div key={i} style={{borderLeft:'2px solid #EF4444',background:'rgba(239,68,68,0.05)',borderRadius:'0 2px 2px 0',padding:'1rem 1.2rem',marginBottom:'0.7rem'}}>
-              <p style={{fontSize:'0.82rem',color:s.whiteDim,lineHeight:1.6}}>{r}</p>
-            </div>
-          ))}
-        </div>
+        {riscos.length > 0 && (
+          <div style={{background:s.surface,border:'1px solid rgba(30,111,255,0.1)',borderRadius:'4px',padding:'2rem',marginBottom:'1rem'}}>
+            <p style={{fontSize:'0.6rem',letterSpacing:'0.25em',textTransform:'uppercase',color:s.whiteMuted,marginBottom:'1.2rem'}}>⚠ Principais riscos identificados</p>
+            {riscos.map((r, i) => (
+              <div key={i} style={{borderLeft:'2px solid #EF4444',background:'rgba(239,68,68,0.05)',borderRadius:'0 2px 2px 0',padding:'1rem 1.2rem',marginBottom:'0.7rem'}}>
+                <p style={{fontSize:'0.82rem',color:s.whiteDim,lineHeight:1.6}}>{r}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Passos */}
         <div style={{background:s.surface,border:'1px solid rgba(30,111,255,0.1)',borderRadius:'4px',padding:'2rem',marginBottom:'1rem'}}>
           <p style={{fontSize:'0.6rem',letterSpacing:'0.25em',textTransform:'uppercase',color:s.whiteMuted,marginBottom:'1.2rem'}}>✓ Próximos passos recomendados</p>
-          {passos?.map((p: string, i: number) => (
+          {passos.map((p, i) => (
             <div key={i} style={{borderLeft:'2px solid #22C55E',background:'rgba(34,197,94,0.05)',borderRadius:'0 2px 2px 0',padding:'1rem 1.2rem',marginBottom:'0.7rem'}}>
               <p style={{fontSize:'0.82rem',color:s.whiteDim,lineHeight:1.6}}>{p}</p>
             </div>
@@ -118,7 +148,7 @@ export default function Resultado() {
           {roadmap.map(([n,t,d], i) => (
             <div key={n} style={{display:'flex',gap:'1.2rem',marginBottom:i<roadmap.length-1?'2rem':'0',position:'relative'}}>
               {i < roadmap.length-1 && <div style={{position:'absolute',left:'16px',top:'36px',bottom:'-2rem',width:'1px',background:'linear-gradient(to bottom,rgba(30,111,255,0.3),transparent)'}}></div>}
-              <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'linear-gradient(135deg,#1252CC,#2178FF)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:'0.6rem',fontWeight:700,color:'white',zIndex:1}}>0{i+1}</div>
+              <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'linear-gradient(135deg,#1252CC,#2178FF)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:'0.6rem',fontWeight:700,color:'white',zIndex:1}}>{n}</div>
               <div style={{paddingTop:'6px'}}>
                 <div style={{fontWeight:500,fontSize:'0.9rem',marginBottom:'0.4rem'}}>{t}</div>
                 <p style={{fontSize:'0.78rem',color:s.whiteDim,lineHeight:1.6}}>{d}</p>
@@ -129,7 +159,6 @@ export default function Resultado() {
 
         {/* CTA */}
         <div style={{borderRadius:'4px',padding:'3rem 2rem',textAlign:'center',background:'linear-gradient(135deg,rgba(30,111,255,0.1),rgba(30,111,255,0.05))',border:'1px solid rgba(30,111,255,0.2)',marginBottom:'2rem',position:'relative',overflow:'hidden'}}>
-          <div style={{position:'absolute',width:'400px',height:'300px',background:'radial-gradient(ellipse,rgba(30,111,255,0.1) 0%,transparent 70%)',top:'-100px',right:'-100px',filter:'blur(60px)',pointerEvents:'none'}}></div>
           <div style={{position:'relative',zIndex:1}}>
             <div style={{fontSize:'0.6rem',letterSpacing:'0.25em',textTransform:'uppercase',color:s.blueLight,marginBottom:'1rem'}}>Próximo passo</div>
             <h2 style={{fontFamily:'Inter,sans-serif',fontSize:'clamp(1.4rem,3vw,2.2rem)',fontWeight:200,letterSpacing:'-0.03em',marginBottom:'1rem'}}>Quer transformar esse diagnóstico em um plano real?</h2>
@@ -139,7 +168,9 @@ export default function Resultado() {
               <div style={{fontSize:'0.82rem',color:s.whiteMuted,textDecoration:'line-through'}}>US$297</div>
               <div style={{fontFamily:'Inter,sans-serif',fontSize:'3rem',fontWeight:200,letterSpacing:'-0.05em',background:'linear-gradient(135deg,#0A3D91,#1E6FFF,#3FA9F5)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',lineHeight:1}}>US$197</div>
             </div>
-            <button className="btn-primary" style={{fontSize:'0.68rem',padding:'1rem 2.5rem'}}>Agendar minha reunião →</button>
+            <a href="https://calendly.com/acessoo/45" target="_blank" rel="noopener noreferrer" style={{display:'inline-block',background:'linear-gradient(135deg,#0A3D91,#1E6FFF)',border:'none',borderRadius:'2px',padding:'1rem 2.5rem',color:'white',fontFamily:'DM Sans,sans-serif',fontSize:'0.68rem',letterSpacing:'0.1em',textTransform:'uppercase',cursor:'pointer',textDecoration:'none'}}>
+              Agendar minha reunião →
+            </a>
             <p style={{marginTop:'1rem',fontSize:'0.68rem',color:s.whiteMuted}}>Vagas limitadas · Sem juridiquês · Orientação estratégica real</p>
           </div>
         </div>
