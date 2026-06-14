@@ -1,35 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const SUPABASE_URL = 'https://gedqamkcflteuhlvrabo.supabase.co'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlZHFhbWtjZmx0ZXVobHZyYWJvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDg3NTc2MCwiZXhwIjoyMDk2NDUxNzYwfQ.TkmXya77xLJ1OEKaMGuOxPcKU7ZV82QD-JwNSki4qhw'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-
-    // Extrai de qualquer estrutura possível
     const answers = body.answers || body
-    const nome = answers.nome || answers.name || body.nome || body.name || ''
-    const email = answers.email || body.email || ''
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
-    const { data, error } = await supabase
-      .from('leads')
-      .insert([{
-        name: nome || 'Sem nome',
-        email: email || 'sem@email.com',
-        whatsapp: answers.whatsapp || body.whatsapp || null,
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify({
+        name: answers.nome || answers.name || 'Sem nome',
+        email: answers.email || 'sem@email.com',
+        whatsapp: answers.whatsapp || null,
         score: body.score || 0,
         nivel: body.nivel || null,
-        respostas: body,
+        respostas: answers,
         created_at: new Date().toISOString(),
-      }])
-      .select()
+      })
+    })
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    const data = await res.json()
+
+    if (!res.ok) {
+      return NextResponse.json({ error: JSON.stringify(data) }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, data })
@@ -39,16 +40,12 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
-    const { data, error } = await supabase
-      .from('leads')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ leads: data })
-  } catch (err) {
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
-  }
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?order=created_at.desc`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`
+    }
+  })
+  const data = await res.json()
+  return NextResponse.json({ leads: data })
 }
