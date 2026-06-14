@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 const SUPABASE_URL = 'https://gedqamkcflteuhlvrabo.supabase.co'
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlZHFhbWtjZmx0ZXVobHZyYWJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NzU3NjAsImV4cCI6MjA5NjQ1MTc2MH0.AKt8e8JPUgZPanBwOog2aJDLBcD3zNHKp7c9TTB2878'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlZHFhbWtjZmx0ZXVobHZyYWJvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDg3NTc2MCwiZXhwIjoyMDk2NDUxNzYwfQ.TkmXya77xLJ1OEKaMGuOxPcKU7ZV82QD-JwNSki4qhw'
 
 const STEPS = [
   {
