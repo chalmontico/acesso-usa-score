@@ -123,7 +123,6 @@ export default function Quiz() {
       const resultado = { score, nivel, answers }
       localStorage.setItem('acesso_resultado', JSON.stringify(resultado))
 
-      // Salva direto no Supabase do browser
       fetch(`${SUPABASE_URL}/rest/v1/leads`, {
         method: 'POST',
         headers: {
@@ -146,97 +145,142 @@ export default function Quiz() {
     }
   }
 
-  const s = { black:'#060810',surface:'#111420',blue:'#1E6FFF',blueLight:'#3FA9F5',white:'#F0F4FF',whiteDim:'rgba(240,244,255,0.7)',whiteMuted:'rgba(240,244,255,0.35)' }
+  const s = {
+    black:'#060810', surface:'#111420', blue:'#1E6FFF',
+    blueLight:'#3FA9F5', white:'#F0F4FF',
+    whiteDim:'rgba(240,244,255,0.7)', whiteMuted:'rgba(240,244,255,0.35)'
+  }
 
   if (loading) return (
-    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:s.black,padding:'2rem',textAlign:'center'}}>
-      <div style={{width:'48px',height:'48px',border:'2px solid rgba(30,111,255,0.2)',borderTopColor:s.blue,borderRadius:'50%',animation:'spin 1s linear infinite',marginBottom:'2rem'}}></div>
-      <h2 style={{fontFamily:'Inter,sans-serif',fontSize:'1.8rem',fontWeight:200,letterSpacing:'-0.03em',marginBottom:'1rem'}}>Analisando sua empresa</h2>
-      <p style={{color:s.whiteMuted,fontSize:'0.85rem',letterSpacing:'0.05em'}}>Gerando seu diagnóstico personalizado...</p>
+    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:s.black,padding:'1.5rem',textAlign:'center'}}>
+      <div style={{width:'44px',height:'44px',border:'2px solid rgba(30,111,255,0.2)',borderTopColor:s.blue,borderRadius:'50%',animation:'spin 1s linear infinite',marginBottom:'1.5rem'}}></div>
+      <h2 style={{fontFamily:'Inter,sans-serif',fontSize:'clamp(1.3rem,5vw,1.8rem)',fontWeight:200,letterSpacing:'-0.03em',marginBottom:'0.8rem'}}>Analisando sua empresa</h2>
+      <p style={{color:s.whiteMuted,fontSize:'0.82rem',letterSpacing:'0.05em'}}>Gerando seu diagnóstico personalizado...</p>
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
     </div>
   )
 
   return (
-    <div style={{minHeight:'100vh',background:s.black,padding:'2rem 1.5rem',display:'flex',flexDirection:'column',alignItems:'center'}}>
-      <div style={{marginBottom:'3rem',display:'flex',alignItems:'center'}}>
-        <span style={{fontFamily:'Inter,sans-serif',fontSize:'1.1rem',fontWeight:300,color:s.white}}>Acesso</span>
-        <span style={{fontFamily:'Inter,sans-serif',fontSize:'1.1rem',fontWeight:600,background:'linear-gradient(135deg,#0A3D91,#1E6FFF,#3FA9F5)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',marginLeft:'0.3rem'}}>USA</span>
-      </div>
+    <>
+      <style>{`
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #060810; color: #F0F4FF; font-family: 'DM Sans', sans-serif; }
+        .quiz-input:focus { border-color: #1E6FFF !important; outline: none; }
+        .quiz-btn:hover { background: rgba(30,111,255,0.15) !important; }
+        .quiz-btn-sel { background: rgba(30,111,255,0.1) !important; border-color: #1E6FFF !important; color: #F0F4FF !important; }
+        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @media (max-width: 480px) {
+          .quiz-card { padding: 1.5rem 1rem !important; }
+          .quiz-option { padding: 0.85rem 0.8rem !important; font-size: 0.82rem !important; }
+          .quiz-label-w { width: 120px !important; font-size: 0.7rem !important; }
+        }
+      `}</style>
 
-      <div style={{width:'100%',maxWidth:'580px',marginBottom:'0.5rem'}}>
-        <div style={{display:'flex',justifyContent:'space-between',marginBottom:'8px'}}>
-          <span style={{fontSize:'0.62rem',letterSpacing:'0.15em',textTransform:'uppercase',color:s.whiteMuted}}>Etapa {step+1} de {STEPS.length}</span>
-          <span style={{fontSize:'0.62rem',color:s.blueLight}}>{Math.round(progress)}%</span>
+      <div style={{minHeight:'100vh',background:s.black,padding:'1.5rem 1rem',display:'flex',flexDirection:'column',alignItems:'center'}}>
+
+        {/* Logo */}
+        <div style={{marginBottom:'2rem',display:'flex',alignItems:'center'}}>
+          <span style={{fontFamily:'Inter,sans-serif',fontSize:'1.1rem',fontWeight:300,color:s.white}}>Acesso</span>
+          <span style={{fontFamily:'Inter,sans-serif',fontSize:'1.1rem',fontWeight:600,background:'linear-gradient(135deg,#0A3D91,#1E6FFF,#3FA9F5)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',marginLeft:'0.3rem'}}>USA</span>
         </div>
-        <div style={{height:'1px',background:'rgba(30,111,255,0.1)',borderRadius:'1px',overflow:'hidden'}}>
-          <div style={{height:'100%',width:`${progress}%`,background:'linear-gradient(90deg,#0A3D91,#3FA9F5)',transition:'width 0.5s ease',borderRadius:'1px'}}></div>
-        </div>
-      </div>
 
-      <div style={{display:'flex',gap:'4px',width:'100%',maxWidth:'580px',marginBottom:'2.5rem'}}>
-        {STEPS.map((_,i) => <div key={i} style={{flex:1,height:'2px',borderRadius:'1px',background:i<=step?s.blue:'rgba(30,111,255,0.12)',transition:'background 0.3s'}}></div>)}
-      </div>
-
-      <div style={{width:'100%',maxWidth:'580px',background:s.surface,border:'1px solid rgba(30,111,255,0.1)',borderRadius:'4px',padding:'2.5rem 2rem'}}>
-        <h2 style={{fontFamily:'Inter,sans-serif',fontSize:'1.5rem',fontWeight:200,letterSpacing:'-0.03em',marginBottom:'0.5rem'}}>{cur.title}</h2>
-        <p style={{fontSize:'0.82rem',color:s.whiteDim,marginBottom:'2rem'}}>{cur.subtitle}</p>
-
-        {cur.type === 'form' && (cur as any).fields.map((f: any) => (
-          <div key={f.key} style={{marginBottom:'1.2rem'}}>
-            <label style={{display:'block',fontSize:'0.62rem',fontWeight:600,letterSpacing:'0.15em',textTransform:'uppercase',color:s.whiteMuted,marginBottom:'0.5rem'}}>{f.label}</label>
-            <input
-              type={f.type||'text'} placeholder={f.placeholder}
-              value={answers[f.key]||''}
-              onChange={e => setAns(f.key, e.target.value)}
-              style={{width:'100%',background:'rgba(6,8,16,0.7)',border:'1px solid rgba(30,111,255,0.15)',borderRadius:'2px',padding:'0.85rem 1rem',color:s.white,fontFamily:'DM Sans,sans-serif',fontSize:'0.9rem',outline:'none',transition:'border-color 0.2s'}}
-              onFocus={e => e.target.style.borderColor=s.blue}
-              onBlur={e => e.target.style.borderColor='rgba(30,111,255,0.15)'}
-            />
+        {/* Progress */}
+        <div style={{width:'100%',maxWidth:'580px',marginBottom:'0.5rem'}}>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:'8px'}}>
+            <span style={{fontSize:'0.6rem',letterSpacing:'0.15em',textTransform:'uppercase',color:s.whiteMuted}}>Etapa {step+1} de {STEPS.length}</span>
+            <span style={{fontSize:'0.6rem',color:s.blueLight}}>{Math.round(progress)}%</span>
           </div>
-        ))}
-
-        {cur.type === 'questions' && (cur as any).questions.map((q: any, qi: number) => (
-          <div key={q.key} style={{marginBottom:'2rem'}}>
-            <p style={{fontSize:'0.85rem',fontWeight:400,marginBottom:'0.8rem',lineHeight:1.5,color:s.white}}>
-              <span style={{color:s.blueLight,marginRight:'0.5rem',fontSize:'0.65rem',letterSpacing:'0.1em'}}>{String(qi+1).padStart(2,'0')}</span>
-              {q.label}
-            </p>
-            {q.options.map((opt: string) => (
-              <button key={opt} onClick={() => setAns(q.key, opt)} style={{
-                width:'100%',textAlign:'left',
-                background:answers[q.key]===opt?'rgba(30,111,255,0.1)':'rgba(6,8,16,0.5)',
-                border:`1px solid ${answers[q.key]===opt?s.blue:'rgba(30,111,255,0.12)'}`,
-                borderRadius:'2px',padding:'0.9rem 1rem',
-                color:answers[q.key]===opt?s.white:s.whiteDim,
-                fontFamily:'DM Sans,sans-serif',fontSize:'0.85rem',
-                cursor:'pointer',transition:'all 0.2s',
-                display:'flex',alignItems:'center',gap:'0.8rem',marginBottom:'0.5rem'
-              }}>
-                <div style={{width:'18px',height:'18px',borderRadius:'50%',border:`1.5px solid ${answers[q.key]===opt?s.blue:'rgba(30,111,255,0.25)'}`,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',background:answers[q.key]===opt?s.blue:'transparent'}}>
-                  {answers[q.key]===opt && <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>}
-                </div>
-                {opt}
-              </button>
-            ))}
+          <div style={{height:'2px',background:'rgba(30,111,255,0.1)',borderRadius:'1px',overflow:'hidden'}}>
+            <div style={{height:'100%',width:`${progress}%`,background:'linear-gradient(90deg,#0A3D91,#3FA9F5)',transition:'width 0.5s ease',borderRadius:'1px'}}></div>
           </div>
-        ))}
-
-        {error && <div style={{padding:'0.8rem 1rem',background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.25)',borderRadius:'2px',color:'#FCA5A5',fontSize:'0.8rem',marginBottom:'1.2rem'}}>{error}</div>}
-
-        <div style={{display:'flex',justifyContent:'space-between',marginTop:'1rem'}}>
-          {step > 0 ? (
-            <button onClick={() => setStep(s => s-1)} style={{background:'none',border:'none',color:s.whiteMuted,fontSize:'0.75rem',letterSpacing:'0.1em',cursor:'pointer',textTransform:'uppercase'}}>← Voltar</button>
-          ) : <div/>}
-          <button onClick={handleNext} style={{background:'linear-gradient(135deg,#0A3D91,#1E6FFF)',border:'none',borderRadius:'2px',padding:'0.85rem 2rem',color:'white',fontFamily:'DM Sans,sans-serif',fontSize:'0.8rem',letterSpacing:'0.1em',textTransform:'uppercase',cursor:'pointer'}}>
-            {step === STEPS.length-1 ? 'Ver meu diagnóstico →' : 'Continuar →'}
-          </button>
         </div>
-      </div>
 
-      <p style={{marginTop:'1.5rem',fontSize:'0.65rem',color:s.whiteMuted,maxWidth:'580px',textAlign:'center',lineHeight:1.6}}>
-        Suas informações são confidenciais e utilizadas apenas para gerar seu diagnóstico.
-      </p>
-    </div>
+        {/* Step dots */}
+        <div style={{display:'flex',gap:'4px',width:'100%',maxWidth:'580px',marginBottom:'2rem'}}>
+          {STEPS.map((_,i) => <div key={i} style={{flex:1,height:'2px',borderRadius:'1px',background:i<=step?s.blue:'rgba(30,111,255,0.12)',transition:'background 0.3s'}}></div>)}
+        </div>
+
+        {/* Card */}
+        <div className="quiz-card" style={{width:'100%',maxWidth:'580px',background:s.surface,border:'1px solid rgba(30,111,255,0.1)',borderRadius:'8px',padding:'2rem 1.5rem'}}>
+          <h2 style={{fontFamily:'Inter,sans-serif',fontSize:'clamp(1.2rem,5vw,1.5rem)',fontWeight:200,letterSpacing:'-0.03em',marginBottom:'0.4rem',marginTop:0}}>{cur.title}</h2>
+          <p style={{fontSize:'0.82rem',color:s.whiteDim,marginBottom:'1.8rem',marginTop:0,lineHeight:1.5}}>{cur.subtitle}</p>
+
+          {/* Form fields */}
+          {cur.type === 'form' && (cur as any).fields.map((f: any) => (
+            <div key={f.key} style={{marginBottom:'1.1rem'}}>
+              <label style={{display:'block',fontSize:'0.6rem',fontWeight:600,letterSpacing:'0.15em',textTransform:'uppercase',color:s.whiteMuted,marginBottom:'0.4rem'}}>{f.label}</label>
+              <input
+                className="quiz-input"
+                type={f.type||'text'} placeholder={f.placeholder}
+                value={answers[f.key]||''}
+                onChange={e => setAns(f.key, e.target.value)}
+                style={{width:'100%',background:'rgba(6,8,16,0.7)',border:'1px solid rgba(30,111,255,0.15)',borderRadius:'4px',padding:'0.85rem 1rem',color:s.white,fontFamily:'DM Sans,sans-serif',fontSize:'0.9rem',transition:'border-color 0.2s',WebkitAppearance:'none'}}
+              />
+            </div>
+          ))}
+
+          {/* Questions */}
+          {cur.type === 'questions' && (cur as any).questions.map((q: any, qi: number) => (
+            <div key={q.key} style={{marginBottom:'1.8rem'}}>
+              <p style={{fontSize:'0.85rem',fontWeight:400,marginBottom:'0.8rem',lineHeight:1.5,color:s.white,marginTop:0}}>
+                <span style={{color:s.blueLight,marginRight:'0.5rem',fontSize:'0.62rem',letterSpacing:'0.1em'}}>{String(qi+1).padStart(2,'0')}</span>
+                {q.label}
+              </p>
+              {q.options.map((opt: string) => {
+                const sel = answers[q.key] === opt
+                return (
+                  <button
+                    key={opt}
+                    className={`quiz-option${sel?' quiz-btn-sel':' quiz-btn'}`}
+                    onClick={() => setAns(q.key, opt)}
+                    style={{
+                      width:'100%',textAlign:'left',
+                      background:sel?'rgba(30,111,255,0.1)':'rgba(6,8,16,0.5)',
+                      border:`1px solid ${sel?s.blue:'rgba(30,111,255,0.12)'}`,
+                      borderRadius:'4px',padding:'0.85rem 1rem',
+                      color:sel?s.white:s.whiteDim,
+                      fontFamily:'DM Sans,sans-serif',fontSize:'0.85rem',
+                      cursor:'pointer',transition:'all 0.2s',
+                      display:'flex',alignItems:'center',gap:'0.8rem',marginBottom:'0.4rem',
+                      WebkitTapHighlightColor:'transparent'
+                    }}
+                  >
+                    <div style={{width:'18px',height:'18px',minWidth:'18px',borderRadius:'50%',border:`1.5px solid ${sel?s.blue:'rgba(30,111,255,0.25)'}`,display:'flex',alignItems:'center',justifyContent:'center',background:sel?s.blue:'transparent'}}>
+                      {sel && <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>}
+                    </div>
+                    {opt}
+                  </button>
+                )
+              })}
+            </div>
+          ))}
+
+          {error && (
+            <div style={{padding:'0.8rem 1rem',background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.25)',borderRadius:'4px',color:'#FCA5A5',fontSize:'0.8rem',marginBottom:'1.2rem'}}>
+              {error}
+            </div>
+          )}
+
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'1.2rem'}}>
+            {step > 0 ? (
+              <button
+                onClick={() => setStep(s => s-1)}
+                style={{background:'none',border:'none',color:s.whiteMuted,fontSize:'0.75rem',letterSpacing:'0.08em',cursor:'pointer',textTransform:'uppercase',padding:'0.5rem 0',WebkitTapHighlightColor:'transparent'}}
+              >← Voltar</button>
+            ) : <div/>}
+            <button
+              onClick={handleNext}
+              style={{background:'linear-gradient(135deg,#0A3D91,#1E6FFF)',border:'none',borderRadius:'4px',padding:'0.9rem 1.8rem',color:'white',fontFamily:'DM Sans,sans-serif',fontSize:'0.8rem',letterSpacing:'0.1em',textTransform:'uppercase',cursor:'pointer',WebkitTapHighlightColor:'transparent'}}
+            >
+              {step === STEPS.length-1 ? 'Ver diagnóstico →' : 'Continuar →'}
+            </button>
+          </div>
+        </div>
+
+        <p style={{marginTop:'1.5rem',fontSize:'0.65rem',color:s.whiteMuted,maxWidth:'580px',textAlign:'center',lineHeight:1.6,padding:'0 0.5rem'}}>
+          Suas informações são confidenciais e utilizadas apenas para gerar seu diagnóstico.
+        </p>
+      </div>
+    </>
   )
 }
