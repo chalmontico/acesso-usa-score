@@ -47,3 +47,99 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 @keyframes scrollDrop{0%{top:-10px;opacity:0}30%{opacity:1}100%{top:55px;opacity:0}}
 @keyframes infOrbit{from{stroke-dashoffset:0}to{stroke-dashoffset:-1000}}
 @keyframes flagWave{0%,100%{transform:skewX(0deg)}25%{transform:skewX(-1deg)}75%{transform:skewX(1deg)}}
+
+/* =====================
+   RESPONSIVO — MOBILE
+   ===================== */
+
+@media (max-width: 768px) {
+  /* Seções com padding grande */
+  section[style*="7rem 5vw"],
+  section[style*="9rem 5vw"],
+  section[style*="8rem 5vw"],
+  section[style*="6rem 5vw"] {
+    padding: 3.5rem 1.2rem !important;
+  }
+
+  /* Grids de 3 colunas -> 1 coluna */
+  div[style*="repeat(3,1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Grids de 2 colunas -> 1 coluna */
+  div[style*="repeat(2,1fr)"],
+  div[style*="1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Botões lado a lado -> empilhar */
+  div[style*="display:'flex'"][style*="gap:'1rem'"] {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Botão principal mobile */
+  .btn-primary {
+    padding: 0.95rem 1.8rem !important;
+    font-size: 0.7rem !important;
+    text-align: center;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .btn-ghost {
+    padding: 0.95rem 1.8rem !important;
+    font-size: 0.7rem !important;
+    text-align: center;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  /* Navbar */
+  nav[style*="5vw"] {
+    padding: 0.9rem 1.2rem !important;
+  }
+
+  /* Hero — ajustes */
+  div[style*="paddingTop:'7rem'"],
+  div[style*="padding:'7rem"] {
+    padding-top: 5rem !important;
+    padding-left: 1.2rem !important;
+    padding-right: 1.2rem !important;
+  }
+
+  /* Rodapé flex */
+  footer {
+    flex-direction: column !important;
+    text-align: center !important;
+    padding: 2rem 1.2rem !important;
+  }
+
+  footer p {
+    text-align: center !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Padding mínimo em seções */
+  section {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* Tags de seção menores */
+  .section-tag {
+    font-size: 0.55rem !important;
+  }
+
+  /* Títulos grandes */
+  h1, h2 {
+    word-break: break-word;
+  }
+
+  /* Hero CTA stack */
+  div[style*="justify-content:'center'"][style*="gap"] {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+}
