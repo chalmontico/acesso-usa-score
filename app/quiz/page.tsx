@@ -2,6 +2,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+const SUPABASE_URL = 'https://gedqamkcflteuhlvrabo.supabase.co'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlZHFhbWtjZmx0ZXVobHZyYWJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NzU3NjAsImV4cCI6MjA5NjQ1MTc2MH0.AKt8e8JPUgZPanBwOog2aJDLBcD3zNHKp7c9TTB2878'
+
 const STEPS = [
   {
     id: 'dados', title: 'Dados da empresa', subtitle: 'Vamos começar conhecendo você e sua empresa.',
@@ -119,11 +122,26 @@ export default function Quiz() {
       const nivel = getNivel(score)
       const resultado = { score, nivel, answers }
       localStorage.setItem('acesso_resultado', JSON.stringify(resultado))
-      fetch('/api/leads', {
+
+      // Salva direto no Supabase do browser
+      fetch(`${SUPABASE_URL}/rest/v1/leads`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers, score, nivel })
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          name: answers.nome || 'Sem nome',
+          email: answers.email || 'sem@email.com',
+          whatsapp: answers.whatsapp || null,
+          score,
+          nivel,
+          respostas: answers,
+        })
       }).catch(() => {})
+
       router.push('/resultado')
     }
   }
