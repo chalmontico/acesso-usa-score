@@ -1,15 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: { persistSession: false }
-})
+export const supabase = createClient(
+  'https://gedqamkcfiteuhlvrabo.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlZHFhbWtjZml0ZXVobHZyYWJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5MDMzMzIsImV4cCI6MjA2NDQ3OTMzMn0.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9'
+)
 
 export function getServiceClient() {
-  return createClient(supabaseUrl, supabaseServiceKey, {
-    auth: { persistSession: false }
-  })
+  return createClient(
+    'https://gedqamkcfiteuhlvrabo.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlZHFhbWtjZml0ZXVobHZyYWJvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODkwMzMzMiwiZXhwIjoyMDY0NDc5MzMyfQ.hRwKBJTlAqfFVrIETqXBl1p-BEgZ0hECFTX2lxwTYhs'
+  )
 }
