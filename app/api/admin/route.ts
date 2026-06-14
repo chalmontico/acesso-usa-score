@@ -1,19 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const SUPABASE_URL = 'https://gedqamkcfiteuhlvrabo.supabase.co'
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlZHFhbWtjZml0ZXVobHZyYWJvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDg3NTc2MCwiZXhwIjoyMDk2NDUxNzYwfQ.TkmXya77xLJ1OEKaMGuOxPcKU7ZV82QD-JwNSki4qhw'
-
 export async function GET(req: NextRequest) {
   const secret = req.headers.get('x-admin-secret')
   if (secret !== 'acesso2025') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!url || !key) {
+    return NextResponse.json({ error: 'Missing env vars', url: !!url, key: !!key, data: [] }, { status: 500 })
+  }
+
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?order=created_at.desc`, {
+    const res = await fetch(`${url}/rest/v1/leads?order=created_at.desc`, {
       headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`
+        'apikey': key,
+        'Authorization': `Bearer ${key}`
       }
     })
     const data = await res.json()
@@ -29,13 +33,16 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+
   try {
     const { id, status } = await req.json()
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${id}`, {
+    const res = await fetch(`${url}/rest/v1/leads?id=eq.${id}`, {
       method: 'PATCH',
       headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'apikey': key!,
+        'Authorization': `Bearer ${key}`,
         'Content-Type': 'application/json',
         'Prefer': 'return=representation'
       },
