@@ -58,6 +58,9 @@ export default function Home() {
           ))}
         </ul>
         <button className="btn-primary" style={{padding:'0.7rem 1.6rem',fontSize:'0.62rem'}} onClick={goQuiz}>Iniciar diagnóstico</button>
+        <button className="nav-hamburger" onClick={() => setMobileOpen(true)} aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
       </nav>
 
       <section style={{position:'relative',minHeight:'100vh',display:'flex',flexDirection:'column',justifyContent:'center',padding:'0 5vw',overflow:'hidden'}}>
