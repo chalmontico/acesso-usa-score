@@ -51,24 +51,15 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 /* =====================
    DESKTOP — Hamburguer escondido
    ===================== */
-.nav-hamburger {
-  display: none;
-}
+.nav-hamburger { display: none; }
 
 /* =====================
    TABLET/MOBILE — < 900px
    ===================== */
 @media (max-width: 900px) {
+  nav > ul { display: none !important; }
+  nav > button { display: none !important; }
 
-  /* Esconder links do centro e botão CTA da navbar */
-  nav > ul {
-    display: none !important;
-  }
-  nav > button {
-    display: none !important;
-  }
-
-  /* Mostrar hamburguer */
   .nav-hamburger {
     display: flex !important;
     flex-direction: column;
@@ -93,27 +84,17 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
    MOBILE — < 768px
    ===================== */
 @media (max-width: 768px) {
+  html, body { overflow-x: hidden; }
+  *, *::before, *::after { max-width: 100%; }
 
-  /* Previne overflow horizontal */
-  html, body, * {
-    max-width: 100%;
-  }
-  html, body {
-    overflow-x: hidden;
-  }
+  nav { padding: 0.9rem 1.2rem !important; }
 
-  /* Navbar */
-  nav {
-    padding: 0.9rem 1.2rem !important;
-  }
-
-  /* Seções — padding lateral reduzido */
   section {
     padding-left: 1.2rem !important;
     padding-right: 1.2rem !important;
   }
 
-  /* Grids de 4, 3 e 2 colunas → 1 coluna */
+  /* Grids → 1 coluna */
   div[style*="repeat(4,1fr)"],
   div[style*="repeat(3,1fr)"],
   div[style*="repeat(2,1fr)"],
@@ -121,17 +102,16 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
     grid-template-columns: 1fr !important;
   }
 
-  /* Botões hero — empilhados */
+  /* Botões hero empilhados */
   .btn-primary, .btn-ghost {
     display: block !important;
     width: 100% !important;
     max-width: 340px !important;
     text-align: center !important;
-    padding: 1rem 1rem !important;
-    font-size: 0.68rem !important;
+    padding: 0.9rem 1rem !important;
+    font-size: 0.65rem !important;
   }
 
-  /* Rodapé */
   footer {
     flex-direction: column !important;
     text-align: center !important;
@@ -139,19 +119,13 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
     gap: 1rem !important;
   }
 
-  /* Stats bar 4 colunas: remover borda lateral */
   div[style*="repeat(4,1fr)"] > div {
     border-right: none !important;
     border-bottom: 1px solid rgba(30,111,255,0.08);
   }
 
-  /* Textos longos */
-  h1, h2, h3, p {
-    word-break: break-word;
-    overflow-wrap: break-word;
-  }
+  h1, h2, h3, p { word-break: break-word; overflow-wrap: break-word; }
 
-  /* Imagem hero de fundo */
   div[style*="width:'60%'"] {
     width: 100% !important;
     opacity: 0.35 !important;
@@ -162,23 +136,23 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
    SMALL — < 480px
    ===================== */
 @media (max-width: 480px) {
-
   section {
     padding-left: 1rem !important;
     padding-right: 1rem !important;
   }
-
-  .section-tag {
-    font-size: 0.52rem !important;
-    letter-spacing: 0.22em !important;
-  }
-
-  /* Padding vertical das seções grandes */
+  .section-tag { font-size: 0.52rem !important; letter-spacing: 0.22em !important; }
   section[style*="7rem"],
   section[style*="9rem"],
   section[style*="8rem"],
   section[style*="6rem"] {
     padding-top: 3rem !important;
     padding-bottom: 3rem !important;
+  }
+
+  /* Botão CTA hero bem menor no mobile pequeno */
+  .btn-primary, .btn-ghost {
+    font-size: 0.6rem !important;
+    padding: 0.85rem 0.8rem !important;
+    letter-spacing: 0.12em !important;
   }
 }
