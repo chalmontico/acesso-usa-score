@@ -57,7 +57,7 @@ export default function Home() {
             <li key={href}><a href={href} style={{fontSize:'0.68rem',fontWeight:400,letterSpacing:'0.15em',textTransform:'uppercase',color:'rgba(240,244,255,0.7)',textDecoration:'none'}}>{label}</a></li>
           ))}
         </ul>
-        <button className="btn-primary" style={{padding:'0.7rem 1.6rem',fontSize:'0.62rem'}} onClick={goQuiz}>Iniciar diagnóstico</button>
+        <button className="btn-primary nav-cta" style={{padding:'0.7rem 1.6rem',fontSize:'0.62rem'}} onClick={goQuiz}>Iniciar diagnóstico</button>
         <button className="nav-hamburger" onClick={() => setMobileOpen(true)} aria-label="Menu">
           <span></span><span></span><span></span>
         </button>
