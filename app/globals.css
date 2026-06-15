@@ -48,44 +48,35 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 @keyframes infOrbit{from{stroke-dashoffset:0}to{stroke-dashoffset:-1000}}
 @keyframes flagWave{0%,100%{transform:skewX(0deg)}25%{transform:skewX(-1deg)}75%{transform:skewX(1deg)}}
 
-/* =====================
-   DESKTOP — Hamburguer escondido
-   ===================== */
+/* Hamburguer — escondido no desktop */
 .nav-hamburger { display: none; }
 
-/* =====================
-   TABLET/MOBILE — < 900px
-   ===================== */
+/* ============================================================
+   TABLET/MOBILE < 900px — esconde links e CTA, mostra hamburguer
+   ============================================================ */
 @media (max-width: 900px) {
-  nav > ul { display: none !important; }
+  nav > ul    { display: none !important; }
   nav > button { display: none !important; }
 
-  .nav-hamburger {
-    display: flex !important;
-    flex-direction: column;
-    justify-content: center;
-    gap: 5px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 6px;
-    -webkit-tap-highlight-color: transparent;
+  /* Botão CTA da navbar — visível mas menor */
+  .nav-cta {
+    display: inline-block !important;
+    padding: 0.45rem 0.9rem !important;
+    font-size: 0.7rem !important;
+    letter-spacing: 0.1em !important;
+    white-space: nowrap;
+    box-shadow: none;
   }
-  .nav-hamburger span {
-    display: block;
-    width: 22px;
-    height: 2px;
-    background: rgba(240,244,255,0.8);
-    border-radius: 2px;
-  }
+
+  /* Hamburguer — escondido pois temos o nav-cta menor */
+  .nav-hamburger { display: none !important; }
 }
 
-/* =====================
-   MOBILE — < 768px
-   ===================== */
+/* ============================================================
+   MOBILE < 768px
+   ============================================================ */
 @media (max-width: 768px) {
   html, body { overflow-x: hidden; }
-  *, *::before, *::after { max-width: 100%; }
 
   nav { padding: 0.9rem 1.2rem !important; }
 
@@ -103,13 +94,13 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
   }
 
   /* Botões hero empilhados */
-  .btn-primary, .btn-ghost {
+  .btn-primary:not(.nav-cta), .btn-ghost {
     display: block !important;
     width: 100% !important;
     max-width: 340px !important;
     text-align: center !important;
     padding: 0.9rem 1rem !important;
-    font-size: 0.65rem !important;
+    font-size: 0.68rem !important;
   }
 
   footer {
@@ -132,15 +123,16 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
   }
 }
 
-/* =====================
-   SMALL — < 480px
-   ===================== */
+/* ============================================================
+   SMALL < 480px — botão nav-cta ainda menor
+   ============================================================ */
 @media (max-width: 480px) {
   section {
     padding-left: 1rem !important;
     padding-right: 1rem !important;
   }
-  .section-tag { font-size: 0.52rem !important; letter-spacing: 0.22em !important; }
+  .section-tag { font-size: 0.52rem !important; }
+
   section[style*="7rem"],
   section[style*="9rem"],
   section[style*="8rem"],
@@ -149,10 +141,10 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
     padding-bottom: 3rem !important;
   }
 
-  /* Botão CTA hero bem menor no mobile pequeno */
-  .btn-primary, .btn-ghost {
-    font-size: 0.6rem !important;
-    padding: 0.85rem 0.8rem !important;
-    letter-spacing: 0.12em !important;
+  /* Botão CTA da navbar — ainda mais compacto */
+  .nav-cta {
+    padding: 0.38rem 0.7rem !important;
+    font-size: 0.65rem !important;
+    letter-spacing: 0.08em !important;
   }
 }
