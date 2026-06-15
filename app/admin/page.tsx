@@ -14,6 +14,21 @@ const STATUS_COLORS: Record<string,string> = {
   proposta_enviada:'#F97316', fechado:'#22C55E', perdido:'#6B7280'
 }
 
+// Igual ao resultado.tsx
+function getScoreColor(score: number): string {
+  if (score >= 75) return '#22C55E'   // verde — Pronto para Expandir
+  if (score >= 50) return '#3B82F6'   // azul — Em Desenvolvimento
+  if (score >= 25) return '#F59E0B'   // amarelo — Iniciando Jornada
+  return '#EF4444'                    // vermelho — Precisa Estruturar
+}
+
+function getNivelColor(nivel: string): string {
+  if (nivel === 'Pronto para Expandir') return '#22C55E'
+  if (nivel === 'Em Desenvolvimento') return '#3B82F6'
+  if (nivel === 'Iniciando Jornada') return '#F59E0B'
+  return '#EF4444'
+}
+
 export default function Admin() {
   const [secret, setSecret] = useState('')
   const [authed, setAuthed] = useState(false)
@@ -54,7 +69,11 @@ export default function Admin() {
     return lead[field] || lead.respostas?.[field] || '—'
   }
 
-  const s = { black:'#060810', surface:'#111420', blue:'#1E6FFF', blueLight:'#3FA9F5', white:'#F0F4FF', whiteDim:'rgba(240,244,255,0.7)', whiteMuted:'rgba(240,244,255,0.35)' }
+  const s = {
+    black:'#060810', surface:'#111420', blue:'#1E6FFF',
+    blueLight:'#3FA9F5', white:'#F0F4FF',
+    whiteDim:'rgba(240,244,255,0.7)', whiteMuted:'rgba(240,244,255,0.35)'
+  }
 
   if (!authed) return (
     <div style={{minHeight:'100vh',background:s.black,display:'flex',alignItems:'center',justifyContent:'center',padding:'2rem'}}>
@@ -83,6 +102,14 @@ export default function Admin() {
   const fechados = leads.filter(l => l.status === 'fechado').length
   const avgScore = leads.length > 0 ? Math.round(leads.reduce((acc, l) => acc + (l.score || 0), 0) / leads.length) : 0
 
+  // Cores dos cards de resumo
+  const statsCards = [
+    { value: total,    label: 'Total de leads', color: '#3FA9F5' },
+    { value: novos,    label: 'Novos',           color: '#3B82F6' },
+    { value: fechados, label: 'Fechados',         color: '#22C55E' },
+    { value: avgScore, label: 'Score médio',      color: getScoreColor(avgScore) },
+  ]
+
   return (
     <div style={{minHeight:'100vh',background:s.black,padding:'2rem 1.5rem'}}>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'2rem'}}>
@@ -94,15 +121,23 @@ export default function Admin() {
         <button onClick={() => setAuthed(false)} style={{background:'none',border:'1px solid rgba(30,111,255,0.2)',borderRadius:'2px',padding:'0.5rem 1rem',color:s.whiteMuted,fontSize:'0.72rem',cursor:'pointer'}}>Sair</button>
       </div>
 
+      {/* Cards de resumo com cores */}
       <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'1rem',marginBottom:'2rem'}}>
-        {[[total,'Total de leads'],[novos,'Novos'],[fechados,'Fechados'],[avgScore,'Score médio']].map(([v,l]) => (
-          <div key={l as string} style={{background:s.surface,border:'1px solid rgba(30,111,255,0.1)',borderRadius:'4px',padding:'1.5rem'}}>
-            <div style={{fontFamily:'Inter,sans-serif',fontSize:'2rem',fontWeight:200,background:'linear-gradient(135deg,#0A3D91,#1E6FFF,#3FA9F5)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>{v}</div>
-            <div style={{fontSize:'0.65rem',letterSpacing:'0.15em',textTransform:'uppercase',color:s.whiteMuted,marginTop:'0.3rem'}}>{l as string}</div>
+        {statsCards.map(({ value, label, color }) => (
+          <div key={label} style={{background:s.surface,border:`1px solid ${color}25`,borderRadius:'4px',padding:'1.5rem',position:'relative',overflow:'hidden'}}>
+            {/* Barra colorida no topo */}
+            <div style={{position:'absolute',top:0,left:0,right:0,height:'2px',background:color,borderRadius:'4px 4px 0 0'}}></div>
+            <div style={{fontFamily:'Inter,sans-serif',fontSize:'2.2rem',fontWeight:200,color:color,lineHeight:1,marginBottom:'0.4rem'}}>
+              {value}
+            </div>
+            <div style={{fontSize:'0.62rem',letterSpacing:'0.15em',textTransform:'uppercase',color:s.whiteMuted}}>
+              {label}
+            </div>
           </div>
         ))}
       </div>
 
+      {/* Tabela de leads */}
       <div style={{background:s.surface,border:'1px solid rgba(30,111,255,0.1)',borderRadius:'4px',overflow:'hidden'}}>
         <div style={{padding:'1.2rem 1.5rem',borderBottom:'1px solid rgba(30,111,255,0.08)'}}>
           <p style={{fontSize:'0.65rem',letterSpacing:'0.2em',textTransform:'uppercase',color:s.whiteMuted}}>{leads.length} leads cadastrados</p>
@@ -117,25 +152,60 @@ export default function Admin() {
               </tr>
             </thead>
             <tbody>
-              {leads.map(lead => (
-                <tr key={lead.id}
-                  style={{borderBottom:'1px solid rgba(30,111,255,0.05)',cursor:'pointer'}}
-                  onClick={() => setSelected(selected?.id===lead.id?null:lead)}>
-                  <td style={{padding:'1rem 1.2rem',fontSize:'0.82rem',color:s.white}}>{lead.name || getField(lead,'nome')}</td>
-                  <td style={{padding:'1rem 1.2rem',fontSize:'0.82rem',color:s.whiteDim}}>{getField(lead,'empresa')}</td>
-                  <td style={{padding:'1rem 1.2rem',fontSize:'0.78rem',color:s.whiteDim}}>{lead.email}</td>
-                  <td style={{padding:'1rem 1.2rem',fontSize:'0.78rem',color:s.whiteMuted}}>{lead.whatsapp || '—'}</td>
-                  <td style={{padding:'1rem 1.2rem',fontSize:'0.9rem',color:s.blueLight}}>{lead.score || '—'}</td>
-                  <td style={{padding:'1rem 1.2rem',fontSize:'0.75rem',color:s.whiteDim}}>{lead.nivel || '—'}</td>
-                  <td style={{padding:'1rem 1.2rem'}} onClick={e => e.stopPropagation()}>
-                    <select value={lead.status||'novo'} onChange={e => updateStatus(lead.id, e.target.value)}
-                      style={{background:'rgba(6,8,16,0.8)',border:`1px solid ${STATUS_COLORS[lead.status||'novo']}40`,borderRadius:'2px',padding:'0.3rem 0.6rem',color:STATUS_COLORS[lead.status||'novo'],fontSize:'0.72rem',cursor:'pointer',outline:'none'}}>
-                      {STATUS_OPTIONS.map(opt => <option key={opt} value={opt}>{STATUS_LABELS[opt]}</option>)}
-                    </select>
-                  </td>
-                  <td style={{padding:'1rem 1.2rem',fontSize:'0.72rem',color:s.whiteMuted}}>{new Date(lead.created_at).toLocaleDateString('pt-BR')}</td>
-                </tr>
-              ))}
+              {leads.map(lead => {
+                const score = lead.score || 0
+                const scoreColor = getScoreColor(score)
+                const nivel = lead.nivel || '—'
+                const nivelColor = getNivelColor(nivel)
+                return (
+                  <tr key={lead.id}
+                    style={{borderBottom:'1px solid rgba(30,111,255,0.05)',cursor:'pointer'}}
+                    onClick={() => setSelected(selected?.id===lead.id?null:lead)}>
+                    <td style={{padding:'1rem 1.2rem',fontSize:'0.82rem',color:s.white}}>{lead.name || getField(lead,'nome')}</td>
+                    <td style={{padding:'1rem 1.2rem',fontSize:'0.82rem',color:s.whiteDim}}>{getField(lead,'empresa')}</td>
+                    <td style={{padding:'1rem 1.2rem',fontSize:'0.78rem',color:s.whiteDim}}>{lead.email}</td>
+                    <td style={{padding:'1rem 1.2rem',fontSize:'0.78rem',color:s.whiteMuted}}>{lead.whatsapp || '—'}</td>
+
+                    {/* Score colorido com círculo */}
+                    <td style={{padding:'1rem 1.2rem'}}>
+                      <span style={{
+                        display:'inline-flex',alignItems:'center',justifyContent:'center',
+                        width:'36px',height:'36px',borderRadius:'50%',
+                        border:`2px solid ${scoreColor}`,
+                        color:scoreColor,fontSize:'0.78rem',fontWeight:600,fontFamily:'Inter,sans-serif'
+                      }}>
+                        {score || '—'}
+                      </span>
+                    </td>
+
+                    {/* Nível com badge colorido */}
+                    <td style={{padding:'1rem 1.2rem'}}>
+                      {nivel !== '—' ? (
+                        <span style={{
+                          display:'inline-block',
+                          padding:'0.25rem 0.6rem',
+                          borderRadius:'100px',
+                          background:`${nivelColor}18`,
+                          border:`1px solid ${nivelColor}50`,
+                          color:nivelColor,
+                          fontSize:'0.65rem',fontWeight:600,letterSpacing:'0.05em',
+                          whiteSpace:'nowrap'
+                        }}>
+                          {nivel}
+                        </span>
+                      ) : <span style={{color:s.whiteMuted}}>—</span>}
+                    </td>
+
+                    <td style={{padding:'1rem 1.2rem'}} onClick={e => e.stopPropagation()}>
+                      <select value={lead.status||'novo'} onChange={e => updateStatus(lead.id, e.target.value)}
+                        style={{background:'rgba(6,8,16,0.8)',border:`1px solid ${STATUS_COLORS[lead.status||'novo']}40`,borderRadius:'2px',padding:'0.3rem 0.6rem',color:STATUS_COLORS[lead.status||'novo'],fontSize:'0.72rem',cursor:'pointer',outline:'none'}}>
+                        {STATUS_OPTIONS.map(opt => <option key={opt} value={opt}>{STATUS_LABELS[opt]}</option>)}
+                      </select>
+                    </td>
+                    <td style={{padding:'1rem 1.2rem',fontSize:'0.72rem',color:s.whiteMuted}}>{new Date(lead.created_at).toLocaleDateString('pt-BR')}</td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
           {leads.length === 0 && (
