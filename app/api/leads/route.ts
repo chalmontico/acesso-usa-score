@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// Usa as variáveis de ambiente da Vercel; o valor antigo fica só como reserva
-// para não interromper a captação enquanto as variáveis não forem confirmadas.
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://gedqamkcflteuhlvrabo.supabase.co'
-const SUPABASE_KEY =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlZHFhbWtjZmx0ZXVobHZyYWJvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDg3NTc2MCwiZXhwIjoyMDk2NDUxNzYwfQ.TkmXya77xLJ1OEKaMGuOxPcKU7ZV82QD-JwNSki4qhw'
+// Credenciais só vêm das variáveis de ambiente da Vercel (nunca no código).
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 const NIVEIS = ['Pronto para Expandir', 'Em Desenvolvimento', 'Iniciando Jornada', 'Precisa Estruturar']
 
 export async function POST(request: NextRequest) {
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    return NextResponse.json({ error: 'Servidor sem configuração do banco.' }, { status: 500 })
+  }
   try {
     const body = await request.json()
     const answers = body?.answers && typeof body.answers === 'object' ? body.answers : null

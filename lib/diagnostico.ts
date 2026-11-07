@@ -251,3 +251,127 @@ export function roadmap(a: Answers): EtapaRoadmap[] {
     },
   ]
 }
+
+// ---------------------------------------------------------------------------
+// Leitura avançada do diagnóstico (não altera o score: só interpreta as respostas)
+// ---------------------------------------------------------------------------
+
+type Item = {
+  key: string
+  pts: number
+  ok: (a: Answers) => boolean
+  forte: string // frase quando já está resolvido
+  falta: string // nome curto da lacuna
+  acao: string // título da ação
+  como: string // como resolver, em uma frase
+  etapa: string // etapa do roadmap onde isso se resolve
+  categoria: string
+}
+
+// Cada item vale exatamente o que vale em CATEGORIAS — assim "+N pts" é sempre verdadeiro.
+const ITENS: Item[] = [
+  { key: 'empresa_eua', pts: 10, ok: (a) => sim(a, 'empresa_eua'), forte: 'Já tem empresa constituída nos EUA', falta: 'Empresa nos EUA', acao: 'Abrir a empresa nos EUA (LLC ou Corporation)', como: 'A escolha do formato e do estado define impostos, proteção e custos. Dá para abrir 100% à distância.', etapa: 'Estruturação', categoria: 'juridico' },
+  { key: 'vende_fora', pts: 10, ok: (a) => sim(a, 'vende_fora'), forte: 'Já vende fora do Brasil', falta: 'Venda internacional', acao: 'Fazer a primeira venda internacional', como: 'Comece por um cliente-piloto: ele valida preço, logística e comunicação antes de escalar.', etapa: 'Inserção', categoria: 'tracao' },
+  { key: 'clientes_eua', pts: 10, ok: (a) => sim(a, 'clientes_eua'), forte: 'Já tem clientes nos EUA', falta: 'Clientes nos EUA', acao: 'Conquistar os primeiros clientes americanos', como: 'Mire um nicho estreito, com uma oferta clara em inglês e acesso direto ao decisor.', etapa: 'Inserção', categoria: 'tracao' },
+  { key: 'produto_americanos', pts: 8, ok: (a) => a.produto_americanos === 'Sim', forte: 'Seu produto ou serviço tem apelo para o público americano', falta: 'Encaixe de produto', acao: 'Validar o encaixe do produto no mercado americano', como: 'Teste a oferta com 5 a 10 potenciais clientes antes de investir em estrutura.', etapa: 'Diagnóstico', categoria: 'tracao' },
+  { key: 'cnpj', pts: 5, ok: (a) => sim(a, 'cnpj'), forte: 'CNPJ ativo e operação formal no Brasil', falta: 'CNPJ ativo', acao: 'Regularizar o CNPJ no Brasil', como: 'É a base formal de qualquer expansão: contratos, bancos e parceiros pedem isso primeiro.', etapa: 'Estruturação', categoria: 'juridico' },
+  { key: 'ein', pts: 5, ok: (a) => sim(a, 'ein'), forte: 'Já possui EIN', falta: 'EIN', acao: 'Solicitar o EIN (CNPJ americano)', como: 'Sem o EIN não há conta bancária, nem emissão de nota, nem declaração de impostos.', etapa: 'Estruturação', categoria: 'juridico' },
+  { key: 'conta_eua', pts: 5, ok: (a) => sim(a, 'conta_eua'), forte: 'Já possui conta bancária nos EUA', falta: 'Conta bancária', acao: 'Abrir a conta bancária americana', como: 'Permite receber em dólar, pagar fornecedores e dar credibilidade perante clientes.', etapa: 'Estruturação', categoria: 'juridico' },
+  { key: 'marca_brasil', pts: 5, ok: (a) => sim(a, 'marca_brasil'), forte: 'Marca registrada no Brasil', falta: 'Registro da marca no Brasil', acao: 'Registrar a marca no INPI', como: 'O registro de origem é o ponto de partida para proteger a marca fora do país.', etapa: 'Estruturação', categoria: 'marca' },
+  { key: 'marca_pesquisou_eua', pts: 5, ok: (a) => sim(a, 'marca_pesquisou_eua'), forte: 'Marca já pesquisada nos EUA', falta: 'Busca de marca nos EUA', acao: 'Pesquisar a disponibilidade da marca no USPTO', como: 'Uma busca prévia evita investir em um nome que já tenha dono nos EUA.', etapa: 'Estruturação', categoria: 'marca' },
+  { key: 'material_ingles', pts: 4, ok: (a) => sim(a, 'material_ingles'), forte: 'Material de vendas em inglês', falta: 'Material em inglês', acao: 'Criar site e material de vendas em inglês', como: 'Adapte a mensagem ao comprador americano; tradução literal não converte.', etapa: 'Preparação', categoria: 'comercial' },
+  { key: 'fala_ingles', pts: 4, ok: (a) => sim(a, 'fala_ingles'), forte: 'Tem alguém que fala inglês na operação', falta: 'Inglês na operação', acao: 'Ter alguém fluente no atendimento e nas vendas', como: 'Primeiro contato e proposta precisam sair em inglês natural, sem ruído.', etapa: 'Preparação', categoria: 'comercial' },
+  { key: 'equipe_comercial', pts: 4, ok: (a) => sim(a, 'equipe_comercial'), forte: 'Equipe comercial estruturada', falta: 'Equipe comercial', acao: 'Definir quem conduz as vendas nos EUA', como: 'Pode ser o sócio, um representante ou uma operação local. O importante é ter dono.', etapa: 'Preparação', categoria: 'comercial' },
+  { key: 'site_profissional', pts: 4, ok: (a) => sim(a, 'site_profissional'), forte: 'Site profissional no ar', falta: 'Site profissional', acao: 'Profissionalizar o site', como: 'É a primeira checagem que um cliente americano faz antes de responder.', etapa: 'Preparação', categoria: 'comercial' },
+  { key: 'visitou_eua', pts: 4, ok: (a) => sim(a, 'visitou_eua'), forte: 'Já visitou os EUA com foco em negócios', falta: 'Vivência de mercado', acao: 'Fazer uma imersão de negócios nos EUA', como: 'Ver o mercado de perto e conhecer gente certa acelera decisões que levariam meses.', etapa: 'Inserção', categoria: 'timing' },
+]
+
+export type Acao = { titulo: string; como: string; pts: number; etapa: string }
+
+// Plano priorizado: o que mais pontua e destrava vem primeiro.
+export function acoes(a: Answers, limite = 5): Acao[] {
+  const prioridade = (i: Item) => i.pts + (['empresa_eua', 'ein', 'conta_eua', 'cnpj'].includes(i.key) ? 0.5 : 0)
+  return ITENS.filter((i) => !i.ok(a))
+    .sort((x, y) => prioridade(y) - prioridade(x))
+    .slice(0, limite)
+    .map((i) => ({ titulo: i.acao, como: i.como, pts: i.pts, etapa: i.etapa }))
+}
+
+export function potencial(a: Answers, limite = 5): number {
+  return acoes(a, limite).reduce((s, x) => s + x.pts, 0)
+}
+
+export function pontosFortes(a: Answers): string[] {
+  const f = ITENS.filter((i) => i.ok(a)).sort((x, y) => y.pts - x.pts).map((i) => i.forte)
+  if (a.faturamento === 'Acima de R$20 milhões' || a.faturamento === 'R$5 milhões a R$20 milhões') {
+    f.push('Faturamento que sustenta um investimento de entrada')
+  }
+  return f.slice(0, 5)
+}
+
+// O que falta, por categoria (para mostrar junto da barra)
+export function lacunas(a: Answers): Record<string, string[]> {
+  const out: Record<string, string[]> = {}
+  for (const i of ITENS) if (!i.ok(a)) (out[i.categoria] ||= []).push(i.falta)
+  return out
+}
+
+export type Severidade = 'Crítico' | 'Alto' | 'Moderado'
+export type Risco = { texto: string; sev: Severidade }
+
+export function riscosDetalhados(a: Answers): Risco[] {
+  const r: Risco[] = []
+  if (!sim(a, 'cnpj')) r.push({ sev: 'Crítico', texto: 'Sem CNPJ ativo: a base formal do negócio no Brasil precisa estar resolvida antes de qualquer expansão.' })
+  if (!sim(a, 'empresa_eua')) r.push({ sev: 'Alto', texto: 'Sem empresa nos EUA (LLC ou Corporation): operar, contratar e receber localmente fica muito mais difícil, e o patrimônio pessoal fica mais exposto.' })
+  if (!sim(a, 'marca_pesquisou_eua')) r.push({ sev: 'Alto', texto: 'A marca ainda não foi pesquisada nos EUA: outra empresa pode já ter registrado algo parecido, e trocar de nome depois custa caro.' })
+  if (!sim(a, 'marca_brasil') || a.marca_brasil === 'Não sei') r.push({ sev: 'Moderado', texto: 'Marca sem registro confirmado no Brasil: a proteção internacional parte da marca de origem.' })
+  if (!sim(a, 'ein') || !sim(a, 'conta_eua')) r.push({ sev: 'Alto', texto: 'Sem EIN ou conta bancária americana: isso trava recebimentos, contratos e a operação do dia a dia.' })
+  if (a.regulamentacao === 'Sim') r.push({ sev: 'Alto', texto: 'Seu produto ou serviço exige licença ou regulamentação específica: isso define prazo e custo da entrada e deve ser mapeado antes de qualquer investimento.' })
+  if (a.regulamentacao === 'Não sei') r.push({ sev: 'Moderado', texto: 'Você ainda não sabe se o seu negócio exige licença nos EUA: vale confirmar antes de investir em estrutura.' })
+  if (!sim(a, 'vende_fora') && !sim(a, 'clientes_eua')) r.push({ sev: 'Moderado', texto: 'Sem experiência de venda internacional: o mercado americano exige adaptar oferta, preço e abordagem comercial.' })
+  if (!sim(a, 'material_ingles') || !sim(a, 'fala_ingles')) r.push({ sev: 'Moderado', texto: 'Comunicação em inglês ainda limitada: site, materiais e atendimento precisam falar com o cliente americano.' })
+  if (a.orcamento === 'Ainda não defini' && a.prazo && a.prazo !== 'Só quero entender') r.push({ sev: 'Moderado', texto: 'Há um prazo de entrada, mas ainda não há orçamento definido: sem isso o plano não fecha.' })
+  const ordem: Record<Severidade, number> = { Crítico: 0, Alto: 1, Moderado: 2 }
+  return r.sort((x, y) => ordem[x.sev] - ordem[y.sev]).slice(0, 4)
+}
+
+// Leitura do prazo desejado frente à prontidão real
+export function leituraPrazo(a: Answers, score: number): { titulo: string; texto: string; tom: 'ok' | 'atencao' | 'neutro' } | null {
+  const p = a.prazo
+  if (!p) return null
+  if (p === 'Só quero entender') return { titulo: 'Fase de entendimento', texto: 'Sem pressa de prazo: o melhor uso agora é montar o plano e o orçamento, para decidir com segurança.', tom: 'neutro' }
+  const curto = p === '0 a 3 meses'
+  const medio = p === '3 a 6 meses'
+  if (curto && score < 60) return { titulo: 'Prazo ambicioso', texto: `Entrar em ${p.toLowerCase()} com este nível de prontidão é possível só se as ações críticas forem tratadas em paralelo. Sem isso, o risco é gastar antes de estar pronto.`, tom: 'atencao' }
+  if (curto) return { titulo: 'Prazo realista', texto: `Com a base que você já tem, entrar em ${p.toLowerCase()} é viável, desde que a estrutura pendente comece agora.`, tom: 'ok' }
+  if (medio && score < 40) return { titulo: 'Prazo apertado', texto: `Para ${p.toLowerCase()}, a estruturação precisa começar já. Hoje ainda há bastante a resolver antes de operar.`, tom: 'atencao' }
+  return { titulo: 'Prazo compatível', texto: `Em ${p.toLowerCase()} dá para estruturar com calma e entrar com segurança, na ordem certa.`, tom: 'ok' }
+}
+
+export type Insight = { titulo: string; texto: string }
+
+// Pontos de atenção do perfil de entrada (perguntas sem peso no score)
+export function insightsPerfil(a: Answers): Insight[] {
+  const out: Insight[] = []
+  switch (a.orcamento) {
+    case 'Ainda não defini':
+      out.push({ titulo: 'Orçamento', texto: 'Definir quanto investir no primeiro ano é a decisão que ordena todas as outras. Comece por uma faixa realista.' })
+      break
+    case 'Até US$10 mil':
+      out.push({ titulo: 'Orçamento enxuto', texto: 'Com esse orçamento, a entrada deve ser faseada: estrutura mínima, um cliente-piloto e crescimento a partir da receita.' })
+      break
+    case 'US$10 mil a US$50 mil':
+      out.push({ titulo: 'Orçamento', texto: 'Faixa que comporta estrutura básica, marca e um início de operação comercial, desde que bem priorizada.' })
+      break
+    default:
+      out.push({ titulo: 'Orçamento', texto: 'Faixa de investimento que permite estruturar com solidez e acelerar a conquista de clientes.' })
+  }
+  if (a.modelo_venda === 'Para empresas (B2B)') out.push({ titulo: 'Modelo B2B', texto: 'Vendas para empresas dependem de relacionamento e credibilidade. Conexões certas pesam mais do que anúncios.' })
+  else if (a.modelo_venda === 'Para consumidor final (B2C)') out.push({ titulo: 'Modelo B2C', texto: 'Consumidor final exige marca protegida, meio de pagamento americano e canal de aquisição testado antes de escalar.' })
+  else if (a.modelo_venda === 'Os dois') out.push({ titulo: 'Modelo B2B e B2C', texto: 'Começar por um dos dois públicos acelera a validação. O outro entra quando o primeiro estiver rodando.' })
+  else if (a.modelo_venda) out.push({ titulo: 'Franquia, licenciamento ou distribuição', texto: 'Esse modelo pede contratos bem estruturados e proteção de marca. É onde uma estrutura jurídica sólida mais pesa.' })
+  if (a.parceiro_eua === 'Não') out.push({ titulo: 'Rede local', texto: 'Sem sócio ou parceiro nos EUA, o caminho passa por construir conexões locais: é aí que o relacionamento encurta o tempo.' })
+  else if (a.parceiro_eua === 'Estou buscando') out.push({ titulo: 'Parceiro em busca', texto: 'Você já busca alguém nos EUA. Escolher bem e formalizar a parceria protege os dois lados.' })
+  else if (a.parceiro_eua === 'Sim') out.push({ titulo: 'Parceiro nos EUA', texto: 'Ter parceiro local é uma vantagem real. O ponto agora é formalizar papéis, participação e propriedade da marca.' })
+  return out.slice(0, 4)
+}

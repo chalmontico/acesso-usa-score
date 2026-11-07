@@ -3,17 +3,22 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertTriangle, ArrowRight, Check, RotateCcw } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Check, Clock, RotateCcw, Sparkles, TrendingUp } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { Reveal } from '@/components/Reveal'
 import { ScoreRing } from '@/components/ScoreRing'
 import {
   CALENDLY_URL,
   STORAGE_KEY,
+  acoes,
+  insightsPerfil,
+  lacunas,
+  leituraPrazo,
   nivelInfo,
-  passos,
+  pontosFortes,
   pontosPorCategoria,
-  riscos,
+  potencial,
+  riscosDetalhados,
   roadmap,
   whatsappLink,
   type Answers,
@@ -46,8 +51,13 @@ export default function Resultado() {
       answers,
       info: nivelInfo(nivel),
       categorias: pontosPorCategoria(answers),
-      riscos: riscos(answers),
-      passos: passos(answers),
+      riscos: riscosDetalhados(answers),
+      acoes: acoes(answers),
+      ganho: potencial(answers),
+      fortes: pontosFortes(answers),
+      lacunas: lacunas(answers),
+      prazo: leituraPrazo(answers, score),
+      perfil: insightsPerfil(answers),
       etapas: roadmap(answers),
     }
   }, [data])
@@ -60,7 +70,9 @@ export default function Resultado() {
     )
   }
 
-  const { score, answers, info, categorias, riscos: listaRiscos, passos: listaPassos, etapas } = view
+  const { score, answers, info, categorias, riscos: listaRiscos, acoes: listaAcoes, ganho, fortes, lacunas: gaps, prazo, perfil, etapas } = view
+  const alvo = Math.min(100, score + ganho)
+  const SEV: Record<string, string> = { Crítico: '#EF4444', Alto: '#F97316', Moderado: '#F59E0B' }
   const primeiroNome = (answers.nome || '').trim().split(/\s+/)[0]
   const msgWhats = `Olá! Fiz o diagnóstico do Acesso USA Score${answers.empresa ? ` (${answers.empresa})` : ''} e meu resultado foi ${score}/100 — ${info.nome}. Quero conversar sobre o plano de entrada nos EUA.`
 
@@ -104,6 +116,36 @@ export default function Resultado() {
           </div>
         </section>
 
+        {/* resumo executivo */}
+        <Reveal className="mt-14">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="card p-5">
+              <TrendingUp className="h-5 w-5 text-acesso-cyan" strokeWidth={1.8} />
+              <div className="mt-4 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-acesso-gray-500">Potencial de evolução</div>
+              <div className="mt-1 font-display text-3xl font-extrabold tracking-tight text-white">
+                {score} <span className="text-acesso-gray-500">→</span> {alvo}
+              </div>
+              <p className="mt-2 text-[0.85rem] leading-relaxed text-acesso-gray-300">
+                {ganho > 0 ? `Resolvendo as ${listaAcoes.length} ações prioritárias abaixo, você chega a ${alvo} pontos.` : 'Você já cobre as principais frentes avaliadas.'}
+              </p>
+            </div>
+            <div className="card p-5">
+              <Sparkles className="h-5 w-5 text-emerald-300" strokeWidth={1.8} />
+              <div className="mt-4 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-acesso-gray-500">Pontos fortes</div>
+              <div className="mt-1 font-display text-3xl font-extrabold tracking-tight text-white">{fortes.length}</div>
+              <p className="mt-2 text-[0.85rem] leading-relaxed text-acesso-gray-300">
+                {fortes.length ? 'Frentes em que a sua empresa já está à frente da maioria.' : 'Cada etapa concluída vira um ponto forte no próximo diagnóstico.'}
+              </p>
+            </div>
+            <div className="card p-5">
+              <Clock className="h-5 w-5" style={{ color: prazo?.tom === 'atencao' ? '#F59E0B' : '#35D0FF' }} strokeWidth={1.8} />
+              <div className="mt-4 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-acesso-gray-500">Seu prazo</div>
+              <div className="mt-1 font-display text-2xl font-extrabold leading-tight tracking-tight text-white">{prazo?.titulo ?? 'Sem prazo definido'}</div>
+              <p className="mt-2 text-[0.85rem] leading-relaxed text-acesso-gray-300">{prazo?.texto ?? 'Defina uma janela de entrada para o plano ganhar ritmo.'}</p>
+            </div>
+          </div>
+        </Reveal>
+
         {/* categorias */}
         <Reveal className="mt-16">
           <div className="card p-6 sm:p-9">
@@ -126,6 +168,15 @@ export default function Resultado() {
                         {c.valor}/{c.max}
                       </span>
                     </div>
+                    {gaps[c.key]?.length ? (
+                      <div className="mb-2 flex flex-wrap gap-1.5">
+                        {gaps[c.key].map((g) => (
+                          <span key={g} className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-0.5 text-[0.7rem] text-acesso-gray-300">
+                            Falta: {g}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
                     <div className="h-2 overflow-hidden rounded-full bg-white/[0.07]">
                       <div
                         className="h-full rounded-full transition-[width] duration-[1400ms] ease-out"
@@ -139,9 +190,33 @@ export default function Resultado() {
           </div>
         </Reveal>
 
-        {/* riscos + próximos passos */}
+        {/* pontos fortes + riscos */}
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <Reveal>
+            <div className="card h-full p-6 sm:p-8">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-emerald-400/30 bg-emerald-500/10 text-emerald-300">
+                  <Check className="h-5 w-5" strokeWidth={2.4} />
+                </span>
+                <h2 className="font-display text-xl font-bold tracking-tight">Seus pontos fortes</h2>
+              </div>
+              {fortes.length ? (
+                <ul className="mt-6 space-y-3">
+                  {fortes.map((f) => (
+                    <li key={f} className="rounded-2xl border border-emerald-400/15 bg-emerald-500/[0.05] px-4 py-3.5 text-[0.92rem] leading-relaxed text-acesso-gray-300">
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-6 text-[0.95rem] leading-relaxed text-acesso-gray-300">
+                  Ainda não apareceram frentes concluídas, e tudo bem: o plano abaixo mostra por onde começar para criar a sua base.
+                </p>
+              )}
+            </div>
+          </Reveal>
+
+          <Reveal delay={100}>
             <div className="card h-full p-6 sm:p-8">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-red-400/30 bg-red-500/10 text-red-300">
@@ -152,8 +227,15 @@ export default function Resultado() {
               {listaRiscos.length ? (
                 <ul className="mt-6 space-y-3">
                   {listaRiscos.map((r) => (
-                    <li key={r} className="rounded-2xl border border-red-400/15 bg-red-500/[0.05] px-4 py-3.5 text-[0.92rem] leading-relaxed text-acesso-gray-300">
-                      {r}
+                    <li key={r.texto} className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3.5 text-[0.92rem] leading-relaxed text-acesso-gray-300">
+                      <span
+                        className="mb-1.5 inline-flex rounded-full border px-2.5 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.12em]"
+                        style={{ color: SEV[r.sev], borderColor: `${SEV[r.sev]}66`, background: `${SEV[r.sev]}14` }}
+                      >
+                        {r.sev}
+                      </span>
+                      <br />
+                      {r.texto}
                     </li>
                   ))}
                 </ul>
@@ -164,25 +246,51 @@ export default function Resultado() {
               )}
             </div>
           </Reveal>
+        </div>
 
-          <Reveal delay={100}>
-            <div className="card h-full p-6 sm:p-8">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-emerald-400/30 bg-emerald-500/10 text-emerald-300">
-                  <Check className="h-5 w-5" strokeWidth={2.4} />
-                </span>
-                <h2 className="font-display text-xl font-bold tracking-tight">Próximos passos</h2>
-              </div>
-              <ul className="mt-6 space-y-3">
-                {listaPassos.map((p) => (
-                  <li key={p} className="rounded-2xl border border-emerald-400/15 bg-emerald-500/[0.05] px-4 py-3.5 text-[0.92rem] leading-relaxed text-acesso-gray-300">
-                    {p}
-                  </li>
+        {/* plano de ação priorizado */}
+        <Reveal className="mt-4">
+          <div className="card p-6 sm:p-9">
+            <span className="section-label">Plano de ação priorizado</span>
+            <h2 className="mt-3 font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">O que fazer primeiro, em ordem de impacto.</h2>
+            <ol className="mt-7 space-y-3">
+              {listaAcoes.map((x, i) => (
+                <li key={x.titulo} className="flex gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+                  <span className="flex h-9 w-9 flex-none items-center justify-center rounded-full border border-acesso-cyan/40 bg-acesso-cyan/10 text-sm font-bold text-acesso-cyan">
+                    {i + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="font-display text-[1.02rem] font-bold tracking-tight text-white">{x.titulo}</h3>
+                      <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-0.5 text-[0.7rem] font-bold text-emerald-300">+{x.pts} pontos</span>
+                    </div>
+                    <p className="mt-1.5 text-[0.9rem] leading-relaxed text-acesso-gray-300">{x.como}</p>
+                    <p className="mt-2 text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-acesso-gray-500">Etapa: {x.etapa}</p>
+                  </div>
+                </li>
+              ))}
+              <li className="rounded-2xl border border-acesso-cyan/25 bg-acesso-cyan/[0.05] p-4 text-[0.9rem] leading-relaxed text-acesso-gray-300 sm:p-5">
+                Converse com o Acesso para transformar este plano em cronograma, com prazos, custos e responsáveis.
+              </li>
+            </ol>
+          </div>
+        </Reveal>
+
+        {perfil.length > 0 && (
+          <Reveal className="mt-4">
+            <div className="card p-6 sm:p-9">
+              <span className="section-label">Leitura do seu perfil</span>
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                {perfil.map((p) => (
+                  <div key={p.titulo} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+                    <h3 className="font-display text-[0.98rem] font-bold tracking-tight text-white">{p.titulo}</h3>
+                    <p className="mt-1.5 text-[0.88rem] leading-relaxed text-acesso-gray-300">{p.texto}</p>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           </Reveal>
-        </div>
+        )}
 
         {/* roadmap */}
         <Reveal className="mt-16">

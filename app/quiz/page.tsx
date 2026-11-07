@@ -75,6 +75,20 @@ const STEPS: Step[] = [
       { key: 'prazo', label: 'Em quanto tempo pretende entrar nos EUA?', options: ['0 a 3 meses', '3 a 6 meses', '6 a 12 meses', 'Mais de 12 meses', 'Só quero entender'] },
     ],
   },
+  {
+    id: 'perfil',
+    short: 'Perfil',
+    title: 'Seu perfil de entrada',
+    subtitle: 'Estas respostas não mudam o seu score: elas deixam o diagnóstico e o plano mais precisos.',
+    type: 'questions',
+    questions: [
+      { key: 'objetivo', label: 'Qual é o principal objetivo com os EUA?', options: ['Vender meus produtos ou serviços', 'Abrir uma operação própria', 'Atrair investidores ou sócios', 'Mudar com a família e operar de lá', 'Ainda estou explorando'] },
+      { key: 'modelo_venda', label: 'Como a empresa vende hoje?', options: ['Para empresas (B2B)', 'Para consumidor final (B2C)', 'Os dois', 'Franquia, licenciamento ou distribuição'] },
+      { key: 'orcamento', label: 'Qual orçamento pode destinar à entrada nos EUA no primeiro ano?', options: ['Ainda não defini', 'Até US$10 mil', 'US$10 mil a US$50 mil', 'US$50 mil a US$150 mil', 'Acima de US$150 mil'] },
+      { key: 'regulamentacao', label: 'O seu produto ou serviço exige licença ou regulamentação específica para operar nos EUA?', hint: 'Ex.: alimentos, saúde, cosméticos, educação, serviços financeiros e profissões regulamentadas.', options: ['Sim', 'Não', 'Não sei'] },
+      { key: 'parceiro_eua', label: 'Você já tem sócio, representante ou parceiro nos EUA?', options: ['Sim', 'Não', 'Estou buscando'] },
+    ],
+  },
 ]
 
 const ANALISE = [
