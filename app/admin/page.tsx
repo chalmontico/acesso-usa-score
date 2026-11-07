@@ -79,18 +79,18 @@ export default function Admin() {
     <div style={{minHeight:'100vh',background:s.black,display:'flex',alignItems:'center',justifyContent:'center',padding:'2rem'}}>
       <div style={{background:s.surface,border:'1px solid rgba(30,111,255,0.1)',borderRadius:'4px',padding:'2.5rem 2rem',width:'100%',maxWidth:'380px'}}>
         <div style={{marginBottom:'2rem',textAlign:'center'}}>
-          <span style={{fontFamily:'Inter,sans-serif',fontSize:'1.2rem',fontWeight:300,color:s.white}}>Acesso</span>
-          <span style={{fontFamily:'Inter,sans-serif',fontSize:'1.2rem',fontWeight:600,background:'linear-gradient(135deg,#0A3D91,#1E6FFF,#3FA9F5)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',marginLeft:'0.3rem'}}>USA</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/acesso-logo.png" alt="Acesso" style={{height:'30px',width:'auto'}}/>
           <p style={{fontSize:'0.65rem',letterSpacing:'0.2em',textTransform:'uppercase',color:s.whiteMuted,marginTop:'0.5rem'}}>Admin</p>
         </div>
         <input
           type="password" placeholder="Senha de acesso"
           value={secret} onChange={e => setSecret(e.target.value)}
           onKeyDown={e => e.key==='Enter' && login()}
-          style={{width:'100%',background:'rgba(6,8,16,0.7)',border:'1px solid rgba(30,111,255,0.15)',borderRadius:'2px',padding:'0.85rem 1rem',color:s.white,fontFamily:'DM Sans,sans-serif',fontSize:'0.9rem',outline:'none',marginBottom:'1rem'}}
+          style={{width:'100%',background:'rgba(6,8,16,0.7)',border:'1px solid rgba(30,111,255,0.15)',borderRadius:'2px',padding:'0.85rem 1rem',color:s.white,fontFamily:'inherit',fontSize:'0.9rem',outline:'none',marginBottom:'1rem'}}
         />
         {error && <p style={{fontSize:'0.75rem',color:'#FCA5A5',marginBottom:'1rem'}}>{error}</p>}
-        <button onClick={login} disabled={loading} style={{width:'100%',background:'linear-gradient(135deg,#0A3D91,#1E6FFF)',border:'none',borderRadius:'2px',padding:'0.85rem',color:'white',fontFamily:'DM Sans,sans-serif',fontSize:'0.8rem',letterSpacing:'0.1em',textTransform:'uppercase',cursor:'pointer'}}>
+        <button onClick={login} disabled={loading} style={{width:'100%',background:'linear-gradient(135deg,#0A3D91,#1E6FFF)',border:'none',borderRadius:'2px',padding:'0.85rem',color:'white',fontFamily:'inherit',fontSize:'0.8rem',letterSpacing:'0.1em',textTransform:'uppercase',cursor:'pointer'}}>
           {loading ? 'Entrando...' : 'Entrar'}
         </button>
       </div>
@@ -114,8 +114,8 @@ export default function Admin() {
     <div style={{minHeight:'100vh',background:s.black,padding:'2rem 1.5rem'}}>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'2rem'}}>
         <div style={{display:'flex',alignItems:'center',gap:'0.3rem'}}>
-          <span style={{fontFamily:'Inter,sans-serif',fontSize:'1.1rem',fontWeight:300,color:s.white}}>Acesso</span>
-          <span style={{fontFamily:'Inter,sans-serif',fontSize:'1.1rem',fontWeight:600,background:'linear-gradient(135deg,#0A3D91,#1E6FFF,#3FA9F5)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>USA</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/acesso-logo.png" alt="Acesso" style={{height:'26px',width:'auto'}}/>
           <span style={{fontSize:'0.65rem',letterSpacing:'0.2em',textTransform:'uppercase',color:s.whiteMuted,marginLeft:'0.8rem'}}>Admin</span>
         </div>
         <button onClick={() => setAuthed(false)} style={{background:'none',border:'1px solid rgba(30,111,255,0.2)',borderRadius:'2px',padding:'0.5rem 1rem',color:s.whiteMuted,fontSize:'0.72rem',cursor:'pointer'}}>Sair</button>
@@ -127,7 +127,7 @@ export default function Admin() {
           <div key={label} style={{background:s.surface,border:`1px solid ${color}25`,borderRadius:'4px',padding:'1.5rem',position:'relative',overflow:'hidden'}}>
             {/* Barra colorida no topo */}
             <div style={{position:'absolute',top:0,left:0,right:0,height:'2px',background:color,borderRadius:'4px 4px 0 0'}}></div>
-            <div style={{fontFamily:'Inter,sans-serif',fontSize:'2.2rem',fontWeight:200,color:color,lineHeight:1,marginBottom:'0.4rem'}}>
+            <div style={{fontFamily:'inherit',fontSize:'2.2rem',fontWeight:200,color:color,lineHeight:1,marginBottom:'0.4rem'}}>
               {value}
             </div>
             <div style={{fontSize:'0.62rem',letterSpacing:'0.15em',textTransform:'uppercase',color:s.whiteMuted}}>

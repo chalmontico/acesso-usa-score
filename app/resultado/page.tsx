@@ -1,207 +1,269 @@
 'use client'
-import { useEffect, useState } from 'react'
+
+import Link from 'next/link'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { AlertTriangle, ArrowRight, Check, RotateCcw } from 'lucide-react'
+import { Logo } from '@/components/Logo'
+import { Reveal } from '@/components/Reveal'
+import { ScoreRing } from '@/components/ScoreRing'
+import {
+  CALENDLY_URL,
+  STORAGE_KEY,
+  nivelInfo,
+  passos,
+  pontosPorCategoria,
+  riscos,
+  roadmap,
+  whatsappLink,
+  type Answers,
+} from '@/lib/diagnostico'
+
+type Stored = { score: number; nivel: string; answers: Answers }
 
 export default function Resultado() {
   const router = useRouter()
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<Stored | null>(null)
 
   useEffect(() => {
-    const stored = localStorage.getItem('acesso_resultado')
-    if (!stored) { router.push('/quiz'); return }
-    setData(JSON.parse(stored))
-  }, [])
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (!raw) {
+        router.replace('/quiz')
+        return
+      }
+      setData(JSON.parse(raw))
+    } catch {
+      router.replace('/quiz')
+    }
+  }, [router])
 
-  if (!data) return (
-    <div style={{minHeight:'100vh',background:'#060810',display:'flex',alignItems:'center',justifyContent:'center'}}>
-      <div style={{width:'40px',height:'40px',border:'2px solid rgba(30,111,255,0.2)',borderTopColor:'#1E6FFF',borderRadius:'50%',animation:'spin 1s linear infinite'}}></div>
-      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-    </div>
-  )
+  const view = useMemo(() => {
+    if (!data) return null
+    const { score, nivel, answers } = data
+    return {
+      score,
+      answers,
+      info: nivelInfo(nivel),
+      categorias: pontosPorCategoria(answers),
+      riscos: riscos(answers),
+      passos: passos(answers),
+      etapas: roadmap(answers),
+    }
+  }, [data])
 
-  const { score, nivel, answers } = data
-  const s = {
-    black:'#060810', surface:'#111420', blue:'#1E6FFF',
-    blueLight:'#3FA9F5', white:'#F0F4FF',
-    whiteDim:'rgba(240,244,255,0.7)', whiteMuted:'rgba(240,244,255,0.35)'
+  if (!view) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <div className="h-10 w-10 rounded-full border-2 border-acesso-cyan/20 border-t-acesso-cyan" style={{ animation: 'spin 1s linear infinite' }} />
+      </main>
+    )
   }
 
-  const getCor = (n: string) => {
-    if (n === 'Pronto para Expandir') return '#22C55E'
-    if (n === 'Em Desenvolvimento') return '#3B82F6'
-    if (n === 'Iniciando Jornada') return '#F59E0B'
-    return '#EF4444'
-  }
-  const cor = getCor(nivel)
-  const circ = 2 * Math.PI * 44
-  const dash = circ - (score / 100) * circ
-
-  const sim = (k: string) => answers?.[k] === 'Sim'
-  const marcaScore = (sim('marca_brasil') ? 7 : 0) + (sim('marca_pesquisou_eua') ? 13 : 0)
-  const estruturaScore = (sim('empresa_eua') ? 12 : 0) + (sim('ein') ? 4 : 0) + (sim('conta_eua') ? 4 : 0)
-  const financeiroScore = answers?.faturamento === 'Acima de R$20 milhões' ? 15 : answers?.faturamento === 'R$5 milhões a R$20 milhões' ? 12 : answers?.faturamento === 'R$1 milhão a R$5 milhões' ? 8 : answers?.faturamento === 'R$500 mil a R$1 milhão' ? 4 : 0
-  const produtoScore = (sim('vende_fora') ? 5 : 0) + (sim('clientes_eua') ? 5 : 0) + (answers?.produto_americanos === 'Sim' ? 5 : 0)
-  const comercialScore = (sim('site_profissional') ? 4 : 0) + (sim('equipe_comercial') ? 3 : 0) + (sim('material_ingles') ? 4 : 0) + (sim('fala_ingles') ? 4 : 0)
-  const timingScore = (sim('visitou_eua') ? 8 : 0) + (answers?.prazo === '0 a 3 meses' ? 7 : answers?.prazo === '3 a 6 meses' ? 5 : 3)
-
-  const categories: [string, number, number][] = [
-    ['Marca e Proteção', marcaScore, 20],
-    ['Estrutura Americana', estruturaScore, 20],
-    ['Cap. Financeira', Math.min(financeiroScore, 15), 15],
-    ['Produto Internacional', Math.min(produtoScore, 15), 15],
-    ['Estrutura Comercial', Math.min(comercialScore, 15), 15],
-    ['Timing e Intenção', Math.min(timingScore, 15), 15],
-  ]
-
-  const riscos: string[] = []
-  if (!sim('marca_brasil')) riscos.push('Marca não registrada no Brasil — risco de conflito ao expandir para os EUA.')
-  if (!sim('marca_pesquisou_eua')) riscos.push('Disponibilidade da marca nos EUA não verificada — pode haver conflito com marcas existentes.')
-  if (!sim('empresa_eua')) riscos.push('Sem estrutura jurídica nos EUA — necessário abrir LLC ou Corporation para operar legalmente.')
-  if (!sim('conta_eua')) riscos.push('Sem conta bancária nos EUA — dificulta recebimentos e operações financeiras americanas.')
-  if (!sim('material_ingles')) riscos.push('Sem materiais em inglês — limita a capacidade de conquistar clientes americanos.')
-
-  const passos: string[] = []
-  if (!sim('marca_pesquisou_eua')) passos.push('Pesquise a disponibilidade da sua marca no USPTO (uspto.gov) antes de qualquer investimento.')
-  if (!sim('empresa_eua')) passos.push('Abra uma LLC nos EUA — processo pode ser feito remotamente em 2-4 semanas.')
-  if (!sim('ein')) passos.push('Solicite o EIN (número fiscal americano) junto ao IRS — necessário para abrir conta bancária.')
-  if (!sim('material_ingles')) passos.push('Crie versões em inglês do seu site e materiais de vendas adaptados ao mercado americano.')
-  passos.push('Agende uma reunião estratégica com a Acesso USA para definir seu plano de entrada personalizado.')
-
-  const roadmap: [string, string, string][] = [
-    ['01','Proteção de Marca','Pesquisa no USPTO, avaliação de risco e conexão com advogado licenciado nos EUA.'],
-    ['02','Estrutura Americana','Definição entre LLC ou Corporation, abertura, EIN e conta bancária nos EUA.'],
-    ['03','Entrada Comercial','Posicionamento, site em inglês, oferta adaptada e estratégia de aquisição de clientes.'],
-    ['04','Conexões Estratégicas','Networking, eventos nos EUA, Acesso Black e rodadas de negócios com empresários americanos.'],
-  ]
-
-  const card = {
-    background: s.surface,
-    border: '1px solid rgba(30,111,255,0.1)',
-    borderRadius: '8px',
-    padding: 'clamp(1.2rem, 4vw, 2rem)',
-    marginBottom: '1rem',
-  }
+  const { score, answers, info, categorias, riscos: listaRiscos, passos: listaPassos, etapas } = view
+  const primeiroNome = (answers.nome || '').trim().split(/\s+/)[0]
+  const msgWhats = `Olá! Fiz o diagnóstico do Acesso USA Score${answers.empresa ? ` (${answers.empresa})` : ''} e meu resultado foi ${score}/100 — ${info.nome}. Quero conversar sobre o plano de entrada nos EUA.`
 
   return (
-    <>
-      <style>{`
-        * { box-sizing: border-box; }
-        body { margin: 0; background: #060810; color: #F0F4FF; font-family: 'DM Sans', sans-serif; }
-        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-        .cat-label { font-size: 0.75rem; color: rgba(240,244,255,0.7); flex-shrink: 0; }
-        @media (max-width: 480px) {
-          .cat-label { font-size: 0.68rem; width: 110px !important; }
-          .resultado-header { font-size: clamp(1.2rem, 6vw, 1.8rem) !important; }
-        }
-      `}</style>
-
-      <div style={{minHeight:'100vh',background:s.black,padding:'1.5rem 1rem'}}>
-        <div style={{maxWidth:'720px',margin:'0 auto'}}>
-
-          {/* Header */}
-          <div style={{textAlign:'center',marginBottom:'2rem'}}>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'1.5rem'}}>
-              <span style={{fontFamily:'Inter,sans-serif',fontSize:'1.1rem',fontWeight:300,color:s.white}}>Acesso</span>
-              <span style={{fontFamily:'Inter,sans-serif',fontSize:'1.1rem',fontWeight:600,background:'linear-gradient(135deg,#0A3D91,#1E6FFF,#3FA9F5)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',marginLeft:'0.3rem'}}>USA</span>
-            </div>
-            <p style={{fontSize:'0.6rem',letterSpacing:'0.35em',textTransform:'uppercase',color:s.whiteMuted,marginBottom:'0.6rem',marginTop:0}}>Diagnóstico completo</p>
-            <h1 className="resultado-header" style={{fontFamily:'Inter,sans-serif',fontSize:'clamp(1.4rem,5vw,2.4rem)',fontWeight:200,letterSpacing:'-0.03em',marginBottom:'0.4rem',marginTop:0}}>{answers?.nome || answers?.empresa}</h1>
-            <p style={{fontSize:'0.75rem',color:s.whiteMuted,marginTop:0}}>{answers?.segmento} · {new Date().toLocaleDateString('pt-BR')}</p>
-          </div>
-
-          {/* Score ring */}
-          <div style={{...card,textAlign:'center'}}>
-            <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'1.2rem'}}>
-              <div style={{position:'relative',width:'160px',height:'160px'}}>
-                <svg width="160" height="160" style={{transform:'rotate(-90deg)'}}>
-                  <circle cx="80" cy="80" r="44" fill="none" stroke="rgba(30,111,255,0.08)" strokeWidth="8"/>
-                  <circle cx="80" cy="80" r="44" fill="none" stroke={cor} strokeWidth="8" strokeLinecap="round"
-                    strokeDasharray={circ} strokeDashoffset={dash} style={{transition:'stroke-dashoffset 2s ease'}}/>
-                </svg>
-                <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
-                  <span style={{fontFamily:'Inter,sans-serif',fontSize:'2.6rem',fontWeight:200,letterSpacing:'-0.05em',color:s.white,lineHeight:1}}>{score}</span>
-                  <span style={{fontSize:'0.6rem',letterSpacing:'0.2em',textTransform:'uppercase',color:s.whiteMuted}}>score</span>
-                </div>
-              </div>
-              <div style={{display:'inline-flex',alignItems:'center',gap:'0.5rem',padding:'0.4rem 1rem',borderRadius:'100px',border:`1px solid ${cor}40`,background:`${cor}15`,fontSize:'0.65rem',fontWeight:600,letterSpacing:'0.1em',textTransform:'uppercase',color:cor}}>
-                {nivel}
-              </div>
-            </div>
-          </div>
-
-          {/* Score bars */}
-          <div style={card}>
-            <p style={{fontSize:'0.6rem',letterSpacing:'0.25em',textTransform:'uppercase',color:s.whiteMuted,marginBottom:'1.2rem',marginTop:0}}>Score por categoria</p>
-            {categories.map(([label, val, max]) => (
-              <div key={label} style={{display:'flex',alignItems:'center',gap:'0.8rem',marginBottom:'0.9rem'}}>
-                <span className="cat-label" style={{width:'150px'}}>{label}</span>
-                <div style={{flex:1,height:'2px',background:'rgba(255,255,255,0.06)',borderRadius:'1px',overflow:'hidden'}}>
-                  <div style={{height:'100%',width:`${(val/max)*100}%`,background:'linear-gradient(90deg,#1252CC,#2178FF)',borderRadius:'1px',transition:'width 1.4s ease'}}></div>
-                </div>
-                <span style={{fontSize:'0.72rem',color:s.blueLight,fontWeight:500,width:'34px',textAlign:'right',flexShrink:0}}>{val}/{max}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Riscos */}
-          {riscos.length > 0 && (
-            <div style={card}>
-              <p style={{fontSize:'0.6rem',letterSpacing:'0.25em',textTransform:'uppercase',color:s.whiteMuted,marginBottom:'1rem',marginTop:0}}>⚠ Principais riscos identificados</p>
-              {riscos.map((r, i) => (
-                <div key={i} style={{borderLeft:'2px solid #EF4444',background:'rgba(239,68,68,0.05)',borderRadius:'0 4px 4px 0',padding:'0.9rem 1rem',marginBottom:'0.6rem'}}>
-                  <p style={{fontSize:'0.82rem',color:s.whiteDim,lineHeight:1.6,margin:0}}>{r}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Passos */}
-          <div style={card}>
-            <p style={{fontSize:'0.6rem',letterSpacing:'0.25em',textTransform:'uppercase',color:s.whiteMuted,marginBottom:'1rem',marginTop:0}}>✓ Próximos passos recomendados</p>
-            {passos.map((p, i) => (
-              <div key={i} style={{borderLeft:'2px solid #22C55E',background:'rgba(34,197,94,0.05)',borderRadius:'0 4px 4px 0',padding:'0.9rem 1rem',marginBottom:'0.6rem'}}>
-                <p style={{fontSize:'0.82rem',color:s.whiteDim,lineHeight:1.6,margin:0}}>{p}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Roadmap */}
-          <div style={card}>
-            <p style={{fontSize:'0.6rem',letterSpacing:'0.25em',textTransform:'uppercase',color:s.whiteMuted,marginBottom:'1.8rem',marginTop:0}}>🗺 Seu roadmap para os EUA</p>
-            {roadmap.map(([n,t,d], i) => (
-              <div key={n} style={{display:'flex',gap:'1rem',marginBottom:i<roadmap.length-1?'1.8rem':'0',position:'relative'}}>
-                {i < roadmap.length-1 && <div style={{position:'absolute',left:'15px',top:'34px',bottom:'-1.8rem',width:'1px',background:'linear-gradient(to bottom,rgba(30,111,255,0.3),transparent)'}}></div>}
-                <div style={{width:'30px',height:'30px',minWidth:'30px',borderRadius:'50%',background:'linear-gradient(135deg,#1252CC,#2178FF)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.58rem',fontWeight:700,color:'white',zIndex:1}}>{n}</div>
-                <div style={{paddingTop:'4px'}}>
-                  <div style={{fontWeight:500,fontSize:'0.88rem',marginBottom:'0.3rem'}}>{t}</div>
-                  <p style={{fontSize:'0.78rem',color:s.whiteDim,lineHeight:1.6,margin:0}}>{d}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* CTA */}
-          <div style={{borderRadius:'8px',padding:'clamp(1.5rem,5vw,3rem) clamp(1rem,4vw,2rem)',textAlign:'center',background:'linear-gradient(135deg,rgba(30,111,255,0.1),rgba(30,111,255,0.05))',border:'1px solid rgba(30,111,255,0.2)',marginBottom:'2rem',position:'relative',overflow:'hidden'}}>
-            <div style={{fontSize:'0.6rem',letterSpacing:'0.25em',textTransform:'uppercase',color:s.blueLight,marginBottom:'0.8rem'}}>Próximo passo</div>
-            <h2 style={{fontFamily:'Inter,sans-serif',fontSize:'clamp(1.2rem,4vw,2rem)',fontWeight:200,letterSpacing:'-0.03em',marginBottom:'0.8rem',marginTop:0}}>Quer transformar esse diagnóstico em um plano real?</h2>
-            <p style={{fontSize:'0.85rem',color:s.whiteDim,lineHeight:1.7,marginBottom:'0.4rem'}}><strong style={{color:s.white}}>Acesso USA Roadmap</strong> — Reunião estratégica de 45 minutos</p>
-            <p style={{fontSize:'0.78rem',color:s.whiteMuted,marginBottom:'1.5rem'}}>Análise da sua empresa · Plano de ação · Próximos passos concretos</p>
-            <div style={{marginBottom:'1.2rem'}}>
-              <div style={{fontSize:'0.82rem',color:s.whiteMuted,textDecoration:'line-through'}}>US$297</div>
-              <div style={{fontFamily:'Inter,sans-serif',fontSize:'clamp(2rem,8vw,3rem)',fontWeight:200,letterSpacing:'-0.05em',background:'linear-gradient(135deg,#0A3D91,#1E6FFF,#3FA9F5)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',lineHeight:1}}>US$197</div>
-            </div>
-            <a href="https://calendly.com/acessoo/45" target="_blank" rel="noopener noreferrer" style={{display:'inline-block',background:'linear-gradient(135deg,#0A3D91,#1E6FFF)',border:'none',borderRadius:'4px',padding:'1rem 2rem',color:'white',fontFamily:'DM Sans,sans-serif',fontSize:'0.75rem',letterSpacing:'0.1em',textTransform:'uppercase',cursor:'pointer',textDecoration:'none',WebkitTapHighlightColor:'transparent'}}>
-              Agendar minha reunião →
-            </a>
-            <p style={{marginTop:'0.8rem',fontSize:'0.68rem',color:s.whiteMuted}}>Vagas limitadas · Sem juridiquês · Orientação estratégica real</p>
-          </div>
-
-          <p style={{textAlign:'center',fontSize:'0.65rem',color:s.whiteMuted,lineHeight:1.8,paddingBottom:'2rem'}}>
-            Este diagnóstico é uma orientação estratégica inicial e não constitui consultoria jurídica, contábil ou migratória.<br/>
-            Para registro de marca nos EUA, estrangeiros normalmente precisam de advogado licenciado perante o USPTO.
-          </p>
-        </div>
+    <main className="pb-24">
+      {/* topo */}
+      <div className="container-acesso flex items-center justify-between pt-6">
+        <Link href="/" className="focus-ring rounded" aria-label="Voltar ao início">
+          <Logo className="h-7 w-auto" priority />
+        </Link>
+        <Link href="/quiz" className="btn-ghost btn-sm focus-ring">
+          <RotateCcw className="h-3.5 w-3.5" />
+          Refazer
+        </Link>
       </div>
-    </>
+
+      <div className="container-acesso mt-12 max-w-[860px]">
+        {/* herói do resultado */}
+        <section className="text-center">
+          <span className="eyebrow anim-up">
+            <span className="dot" />
+            {primeiroNome ? `Diagnóstico de ${primeiroNome}` : 'Seu diagnóstico'}
+            {answers.empresa ? ` · ${answers.empresa}` : ''}
+          </span>
+
+          <div className="anim-up mt-10 flex justify-center" style={{ animationDelay: '100ms' }}>
+            <ScoreRing score={score} color={info.cor} size={220} stroke={12} />
+          </div>
+
+          <div className="anim-up mt-7" style={{ animationDelay: '200ms' }}>
+            <span
+              className="inline-flex rounded-full border px-4 py-1.5 text-[0.74rem] font-bold uppercase tracking-[0.12em]"
+              style={{ color: info.cor, borderColor: `${info.cor}66`, background: `${info.cor}18` }}
+            >
+              {info.nome}
+            </span>
+            <h1 className="mx-auto mt-6 max-w-2xl font-display text-[2rem] leading-[1.05] tracking-[-0.04em] text-balance sm:text-5xl">
+              <span className="t-heavy text-white">{info.titulo}</span>
+            </h1>
+            <p className="mx-auto mt-5 max-w-xl text-[1.02rem] leading-relaxed text-acesso-gray-300">{info.resumo}</p>
+          </div>
+        </section>
+
+        {/* categorias */}
+        <Reveal className="mt-16">
+          <div className="card p-6 sm:p-9">
+            <div className="flex items-baseline justify-between">
+              <span className="section-label">Score por categoria</span>
+              <span className="text-[0.78rem] text-acesso-gray-500">{score} de 100 pontos</span>
+            </div>
+            <div className="mt-8 space-y-6">
+              {categorias.map((c) => {
+                const pct = Math.round(c.pct * 100)
+                const cor = pct >= 70 ? '#22C55E' : pct >= 35 ? '#3B82F6' : '#F59E0B'
+                return (
+                  <div key={c.key}>
+                    <div className="mb-2 flex items-baseline justify-between gap-4">
+                      <div>
+                        <span className="text-[0.95rem] font-semibold text-white">{c.label}</span>
+                        <span className="ml-2 hidden text-[0.8rem] text-acesso-gray-500 sm:inline">{c.desc}</span>
+                      </div>
+                      <span className="flex-none text-[0.85rem] font-bold tabular-nums" style={{ color: cor }}>
+                        {c.valor}/{c.max}
+                      </span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-white/[0.07]">
+                      <div
+                        className="h-full rounded-full transition-[width] duration-[1400ms] ease-out"
+                        style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${cor}99, ${cor})` }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </Reveal>
+
+        {/* riscos + próximos passos */}
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <Reveal>
+            <div className="card h-full p-6 sm:p-8">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-red-400/30 bg-red-500/10 text-red-300">
+                  <AlertTriangle className="h-5 w-5" strokeWidth={1.9} />
+                </span>
+                <h2 className="font-display text-xl font-bold tracking-tight">Principais riscos</h2>
+              </div>
+              {listaRiscos.length ? (
+                <ul className="mt-6 space-y-3">
+                  {listaRiscos.map((r) => (
+                    <li key={r} className="rounded-2xl border border-red-400/15 bg-red-500/[0.05] px-4 py-3.5 text-[0.92rem] leading-relaxed text-acesso-gray-300">
+                      {r}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-6 text-[0.95rem] leading-relaxed text-acesso-gray-300">
+                  Nenhum risco crítico apareceu nas suas respostas. O foco agora é execução e conexões certas.
+                </p>
+              )}
+            </div>
+          </Reveal>
+
+          <Reveal delay={100}>
+            <div className="card h-full p-6 sm:p-8">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-emerald-400/30 bg-emerald-500/10 text-emerald-300">
+                  <Check className="h-5 w-5" strokeWidth={2.4} />
+                </span>
+                <h2 className="font-display text-xl font-bold tracking-tight">Próximos passos</h2>
+              </div>
+              <ul className="mt-6 space-y-3">
+                {listaPassos.map((p) => (
+                  <li key={p} className="rounded-2xl border border-emerald-400/15 bg-emerald-500/[0.05] px-4 py-3.5 text-[0.92rem] leading-relaxed text-acesso-gray-300">
+                    {p}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+        </div>
+
+        {/* roadmap */}
+        <Reveal className="mt-16">
+          <span className="section-label">Seu roadmap de internacionalização</span>
+          <h2 className="mt-4 font-display text-[2rem] leading-[1.02] tracking-[-0.04em] sm:text-5xl">
+            <span className="t-light text-acesso-gray-300">4 etapas, </span>
+            <span className="t-heavy text-white">do seu jeito.</span>
+          </h2>
+        </Reveal>
+
+        <div className="relative mt-10">
+          <div className="absolute bottom-6 left-[19px] top-6 w-px bg-gradient-to-b from-acesso-cyan/70 via-acesso-blue-600/40 to-transparent" />
+          <ol className="space-y-5">
+            {etapas.map((e, i) => (
+              <li key={e.n} className="relative pl-14">
+                <Reveal delay={i * 80}>
+                  <span
+                    className="absolute left-0 top-1 flex h-10 w-10 items-center justify-center rounded-full border bg-black text-sm font-bold"
+                    style={{ color: e.cor, borderColor: `${e.cor}88`, boxShadow: `0 0 22px ${e.cor}40` }}
+                  >
+                    {i + 1}
+                  </span>
+                  <div className="card spot p-5 sm:p-6">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="font-display text-lg font-bold tracking-tight text-white">{e.titulo}</h3>
+                      <span
+                        className="rounded-full border px-3 py-1 text-[0.66rem] font-bold uppercase tracking-[0.1em]"
+                        style={{ color: e.cor, borderColor: `${e.cor}55`, background: `${e.cor}14` }}
+                      >
+                        {e.status}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-[0.92rem] text-acesso-gray-300">{e.desc}</p>
+                    <p className="mt-2 text-[0.88rem] leading-relaxed text-acesso-gray-500">{e.nota}</p>
+                  </div>
+                </Reveal>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        {/* CTA */}
+        <Reveal className="mt-20">
+          <div className="glass relative overflow-hidden rounded-[36px] p-7 text-center sm:p-14">
+            <div className="pointer-events-none absolute left-1/2 top-0 h-[320px] w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-acesso-cyan/[0.14] blur-[90px]" />
+            <div className="relative">
+              <span className="section-label">Próximo passo</span>
+              <h2 className="mx-auto mt-5 max-w-xl font-display text-[2rem] leading-[1.02] tracking-[-0.04em] sm:text-5xl">
+                <span className="t-light block text-acesso-gray-300">Transforme este diagnóstico</span>
+                <span className="t-heavy block text-white">em um plano real.</span>
+              </h2>
+              <p className="mx-auto mt-6 max-w-md text-[1rem] leading-relaxed text-acesso-gray-300">
+                <strong className="font-semibold text-white">Acesso USA Roadmap</strong> — uma reunião estratégica de 45 minutos com especialistas do Acesso, a partir do seu resultado.
+              </p>
+
+              <div className="mt-8">
+                <div className="text-sm text-acesso-gray-500 line-through">US$297</div>
+                <div className="grad-text font-display text-[4.6rem] font-extrabold leading-none tracking-[-0.05em] sm:text-[5.4rem]">US$197</div>
+                <div className="mt-2 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-acesso-gray-500">por empresa · sessão única</div>
+              </div>
+
+              <div className="mx-auto mt-9 flex max-w-sm flex-col gap-3">
+                <a href={CALENDLY_URL} target="_blank" rel="noopener noreferrer" className="btn-light focus-ring">
+                  Agendar minha reunião
+                  <ArrowRight className="h-4 w-4" strokeWidth={2.4} />
+                </a>
+                <a href={whatsappLink(msgWhats)} target="_blank" rel="noopener noreferrer" className="btn-ghost focus-ring">
+                  Falar com o Acesso no WhatsApp
+                </a>
+              </div>
+              <p className="mt-5 text-[0.78rem] text-acesso-gray-500">Vagas limitadas · Sem juridiquês · Orientação estratégica real</p>
+            </div>
+          </div>
+        </Reveal>
+
+        <p className="mt-12 text-center text-[0.74rem] leading-relaxed text-acesso-gray-500">
+          Este diagnóstico é uma orientação estratégica inicial e não constitui consultoria jurídica, contábil ou migratória.
+          <br />
+          Para registro de marca nos EUA, estrangeiros normalmente precisam de advogado licenciado perante o USPTO.
+        </p>
+      </div>
+    </main>
   )
 }
