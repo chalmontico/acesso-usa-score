@@ -6,7 +6,7 @@ export function Footer() {
     <footer className="relative border-t border-white/[0.08] bg-black">
       <div className="container-acesso grid gap-12 py-16 md:grid-cols-[1.2fr_1fr_1fr]">
         <div>
-          <Logo className="h-8 w-auto" />
+          <Logo className="h-6 w-auto" />
           <p className="mt-5 max-w-sm text-[0.95rem] leading-relaxed text-acesso-gray-500">
             Um ecossistema global que conecta empresários, empresas, mercados e oportunidades entre Brasil, Estados Unidos e o mundo.
           </p>

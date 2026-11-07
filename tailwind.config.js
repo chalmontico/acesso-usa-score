@@ -14,7 +14,7 @@ module.exports = {
         'brand-blue': '#1E6FFF',
         'brand-blue-light': '#3FA9F5',
         'brand-blue-dark': '#0A3D91',
-        'acesso-black': '#050608',
+        'acesso-black': '#030e26',
         'acesso-gray-100': '#e7e8ea',
         'acesso-gray-300': '#a6aab1',
         'acesso-gray-500': '#6c7079',

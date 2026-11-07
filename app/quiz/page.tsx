@@ -254,7 +254,7 @@ export default function Quiz() {
       {/* topo */}
       <div className="container-acesso flex items-center justify-between pt-6">
         <Link href="/" className="focus-ring rounded" aria-label="Voltar ao início">
-          <Logo className="h-7 w-auto" priority />
+          <Logo className="h-5 w-auto" priority />
         </Link>
         <span className="text-[0.78rem] font-semibold text-acesso-gray-500">{progresso}% concluído</span>
       </div>

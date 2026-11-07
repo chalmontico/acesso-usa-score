@@ -3,7 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --acesso-black: #050608;
+  --acesso-black: #030e26;
+  --acesso-navy: #0a2a63;
+  --acesso-dot: #3f9dff;
   --acesso-white: #ffffff;
   --acesso-gray-100: #e7e8ea;
   --acesso-gray-300: #a6aab1;
@@ -28,6 +30,17 @@ html {
   background: var(--acesso-black);
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 38%, rgba(14, 52, 120, 0.85) 0%, rgba(8, 30, 78, 0.55) 40%, transparent 75%),
+    linear-gradient(180deg, #041032 0%, #030c24 55%, #02081a 100%);
 }
 
 body {

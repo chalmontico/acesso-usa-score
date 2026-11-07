@@ -37,7 +37,7 @@ export function Header() {
         }`}
       >
         <Link href="/" className="focus-ring shrink-0 rounded" aria-label="Acesso — início" onClick={() => setOpen(false)}>
-          <Logo priority className="h-[26px] w-auto sm:h-[28px]" />
+          <Logo priority className="h-[20px] w-auto sm:h-[22px]" />
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex" aria-label="Principal">

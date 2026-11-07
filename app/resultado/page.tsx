@@ -69,7 +69,7 @@ export default function Resultado() {
       {/* topo */}
       <div className="container-acesso flex items-center justify-between pt-6">
         <Link href="/" className="focus-ring rounded" aria-label="Voltar ao início">
-          <Logo className="h-7 w-auto" priority />
+          <Logo className="h-5 w-auto" priority />
         </Link>
         <Link href="/quiz" className="btn-ghost btn-sm focus-ring">
           <RotateCcw className="h-3.5 w-3.5" />
