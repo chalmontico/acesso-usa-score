@@ -18,6 +18,7 @@ import { ScoreRing } from '@/components/ScoreRing'
 import { WorldMap } from '@/components/WorldMap'
 import { Faq, type FaqItem } from '@/components/Faq'
 import { CALENDLY_URL, whatsappLink } from '@/lib/diagnostico'
+import { asset } from '@/lib/base'
 
 const STATS = [
   { value: '28', label: 'anos de experiência em negócios' },
@@ -66,7 +67,7 @@ function Photo({ name, tall }: { name: string; tall?: boolean }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={`/images/${name}.jpg`}
+      src={asset(`/images/${name}.jpg`)}
       alt="Momentos da comunidade Acesso"
       loading="lazy"
       decoding="async"
@@ -157,10 +158,10 @@ export default function Home() {
               {/* floating route chip */}
               <div className="glass absolute -bottom-5 -left-2 flex items-center gap-2 rounded-full py-2 pl-2 pr-4 sm:-left-8">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/flags/br.svg" alt="" className="h-7 w-7 rounded-full object-cover" />
+                <img src={asset("/flags/br.svg")} alt="" className="h-7 w-7 rounded-full object-cover" />
                 <ArrowRight className="h-4 w-4 text-acesso-cyan" />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/flags/us.svg" alt="" className="h-7 w-7 rounded-full object-cover" />
+                <img src={asset("/flags/us.svg")} alt="" className="h-7 w-7 rounded-full object-cover" />
                 <span className="ml-1 text-[0.78rem] font-semibold text-white">Brasil → EUA</span>
               </div>
             </div>

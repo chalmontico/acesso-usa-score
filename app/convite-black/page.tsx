@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Loader2, MapPin, Calendar, Crown } from "lucide-react";
+import { asset } from '@/lib/base'
 
 type Info = {
   convidadoPor: { nome: string; foto_url: string | null } | null;
@@ -38,7 +39,7 @@ function ConviteBlackConteudo() {
   const [enviado, setEnviado] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/convite-black/info${ref ? `?ref=${ref}` : ""}`)
+    fetch(asset(`/api/convite-black/info${ref ? `?ref=${ref}` : ""}`))
       .then((r) => r.json())
       .then((dados) => setInfo(dados))
       .finally(() => setCarregando(false));
@@ -48,7 +49,7 @@ function ConviteBlackConteudo() {
     e.preventDefault();
     if (!nome || !email) return;
     setEnviando(true);
-    await fetch("/api/convite-black/responder", {
+    await fetch(asset("/api/convite-black/responder"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nome, email, telefone, convidadoPor: ref }),
@@ -62,7 +63,7 @@ function ConviteBlackConteudo() {
       <div className="w-full max-w-md">
         <div className="mb-8 flex justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-acesso-black.png" alt="Acesso Black" className="h-auto w-full max-w-[220px]" />
+          <img src={asset("/logo-acesso-black.png")} alt="Acesso Black" className="h-auto w-full max-w-[220px]" />
         </div>
 
         {carregando ? (

@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { Reveal } from '@/components/Reveal'
 import { DRAFT_KEY, STORAGE_KEY, calcScore, getNivel, type Answers } from '@/lib/diagnostico'
+import { asset } from '@/lib/base'
 
 type Field = { key: string; label: string; placeholder: string; type?: string; autoComplete?: string; inputMode?: 'text' | 'email' | 'tel' }
 type Question = { key: string; label: string; hint?: string; options: string[] }
@@ -203,7 +204,7 @@ export default function Quiz() {
     }, 650)
 
     const salvar = async () => {
-      const res = await fetch('/api/leads', {
+      const res = await fetch(asset('/api/leads'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ score, nivel, answers: clean }),

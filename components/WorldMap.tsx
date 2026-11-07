@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { KPX, LAND_DOTS, LAND_OUTLINE, LAT0, LON0, MAP_H, MAP_W } from "@/lib/worldDots";
+import { asset } from '@/lib/base'
 
 // Everything is placed by real longitude/latitude on the same projection the
 // dotted land was generated from, so markers always sit on the right country.
@@ -51,7 +52,7 @@ function Flag({ code, className = "" }: { code: string; className?: string }) {
       }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={`/flags/${code}.svg`} alt="" className="h-full w-full scale-[1.08] object-cover" style={{ filter: "saturate(1.1) brightness(0.78)" }} />
+      <img src={asset(`/flags/${code}.svg`)} alt="" className="h-full w-full scale-[1.08] object-cover" style={{ filter: "saturate(1.1) brightness(0.78)" }} />
       <span className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_30%_22%,rgba(255,255,255,0.45),rgba(255,255,255,0.04)_34%,rgba(0,8,30,0.55)_100%)]" />
     </span>
   );

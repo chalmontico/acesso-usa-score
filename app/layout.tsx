@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import '@fontsource-variable/plus-jakarta-sans'
 import './globals.css'
 import { LightField } from '@/components/LightField'
+import { asset } from '@/lib/base'
 
 const title = 'Acesso USA Score — Seu diagnóstico de internacionalização'
 const description =
@@ -10,11 +11,11 @@ const description =
 export const metadata: Metadata = {
   title,
   description,
-  metadataBase: new URL('https://acesso-usa-score.vercel.app'),
+  metadataBase: new URL('https://acessousa.com'),
   icons: {
-    icon: [{ url: '/acesso-icon-v2.png', type: 'image/png', sizes: '512x512' }],
-    shortcut: '/acesso-icon-v2.png',
-    apple: '/acesso-icon-v2.png',
+    icon: [{ url: asset('/acesso-icon-v2.png'), type: 'image/png', sizes: '512x512' }],
+    shortcut: asset('/acesso-icon-v2.png'),
+    apple: asset('/acesso-icon-v2.png'),
   },
   openGraph: {
     title,

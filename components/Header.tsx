@@ -36,9 +36,9 @@ export function Header() {
           scrolled ? 'h-[54px]' : 'h-[62px]'
         }`}
       >
-        <Link href="/" className="focus-ring shrink-0 rounded" aria-label="Acesso — início" onClick={() => setOpen(false)}>
+        <a href="/" className="focus-ring shrink-0 rounded" aria-label="Acesso — início" onClick={() => setOpen(false)}>
           <Logo priority className="h-[20px] w-auto sm:h-[22px]" />
-        </Link>
+        </a>
 
         <nav className="hidden items-center gap-8 lg:flex" aria-label="Principal">
           {NAV.map((item) => (
