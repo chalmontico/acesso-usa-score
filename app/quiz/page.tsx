@@ -9,7 +9,7 @@ import { Reveal } from '@/components/Reveal'
 import { DRAFT_KEY, STORAGE_KEY, calcScore, getNivel, type Answers } from '@/lib/diagnostico'
 import { asset } from '@/lib/base'
 
-type Field = { key: string; label: string; placeholder: string; type?: string; autoComplete?: string; inputMode?: 'text' | 'email' | 'tel' }
+type Field = { key: string; label: string; ask: string; placeholder: string; type?: string; autoComplete?: string; inputMode?: 'text' | 'email' | 'tel' }
 type Question = { key: string; label: string; hint?: string; options: string[] }
 type Step =
   | { id: string; short: string; title: string; subtitle: string; type: 'form'; fields: Field[] }
@@ -25,11 +25,11 @@ const STEPS: Step[] = [
     subtitle: 'Para montar o diagnóstico e te enviar o resultado.',
     type: 'form',
     fields: [
-      { key: 'nome', label: 'Seu nome', placeholder: 'João Silva', autoComplete: 'name' },
-      { key: 'empresa', label: 'Nome da empresa', placeholder: 'Minha Empresa Ltda', autoComplete: 'organization' },
-      { key: 'email', label: 'E-mail', placeholder: 'joao@empresa.com.br', type: 'email', autoComplete: 'email', inputMode: 'email' },
-      { key: 'whatsapp', label: 'WhatsApp', placeholder: '(11) 99999-9999', type: 'tel', autoComplete: 'tel', inputMode: 'tel' },
-      { key: 'segmento', label: 'Segmento', placeholder: 'Ex.: tecnologia, moda, alimentos…' },
+      { key: 'nome', label: 'Seu nome', ask: 'Como podemos te chamar?', placeholder: 'João Silva', autoComplete: 'name' },
+      { key: 'empresa', label: 'Nome da empresa', ask: 'Qual é o nome da sua empresa?', placeholder: 'Minha Empresa Ltda', autoComplete: 'organization' },
+      { key: 'email', label: 'E-mail', ask: 'Qual é o seu melhor e-mail?', placeholder: 'joao@empresa.com.br', type: 'email', autoComplete: 'email', inputMode: 'email' },
+      { key: 'whatsapp', label: 'WhatsApp', ask: 'E o seu WhatsApp?', placeholder: '(11) 99999-9999', type: 'tel', autoComplete: 'tel', inputMode: 'tel' },
+      { key: 'segmento', label: 'Segmento', ask: 'Em que segmento a empresa atua?', placeholder: 'Ex.: tecnologia, moda, alimentos…' },
     ],
   },
   {
@@ -89,6 +89,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 export default function Quiz() {
   const router = useRouter()
   const [step, setStep] = useState(0)
+  const [sub, setSub] = useState(0) // campo atual dentro da etapa "Você" (um por vez)
   const [answers, setAnswers] = useState<Answers>({})
   const [invalid, setInvalid] = useState<string[]>([])
   const [message, setMessage] = useState('')
@@ -119,15 +120,16 @@ export default function Quiz() {
       if (d && typeof d === 'object') {
         setAnswers(d.answers || {})
         setStep(Math.min(Math.max(Number(d.step) || 0, 0), STEPS.length - 1))
+        setSub(Math.max(Number(d.sub) || 0, 0))
       }
     } catch {}
   }, [])
 
   useEffect(() => {
     try {
-      sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ answers, step }))
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ answers, step, sub }))
     } catch {}
-  }, [answers, step])
+  }, [answers, step, sub])
 
   function setAns(key: string, val: string) {
     setAnswers((a) => ({ ...a, [key]: val }))
@@ -150,7 +152,7 @@ export default function Quiz() {
   function validate(): boolean {
     const bad: string[] = []
     if (cur.type === 'form') {
-      for (const f of cur.fields) {
+      for (const f of [cur.fields[Math.min(sub, cur.fields.length - 1)]]) {
         const v = (answers[f.key] || '').trim()
         if (!v) bad.push(f.key)
         else if (f.key === 'email' && !EMAIL_RE.test(v)) bad.push(f.key)
@@ -165,7 +167,7 @@ export default function Quiz() {
         emailOnly
           ? 'Confira o e-mail: parece que falta alguma parte.'
           : cur.type === 'form'
-          ? 'Preencha todos os campos para continuar.'
+          ? 'Preencha este campo para continuar.'
           : 'Responda todas as perguntas para continuar.'
       )
       setTimeout(() => {
@@ -178,8 +180,9 @@ export default function Quiz() {
     return true
   }
 
-  function goTo(n: number) {
+  function goTo(n: number, subIdx = 0) {
     setStep(n)
+    setSub(subIdx)
     setInvalid([])
     setMessage('')
     setTimeout(() => topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 30)
@@ -223,8 +226,24 @@ export default function Quiz() {
 
   async function continuar() {
     if (!validate()) return
+    if (cur.type === 'form' && sub < cur.fields.length - 1) {
+      setSub(sub + 1)
+      setMessage('')
+      return
+    }
     if (step < total - 1) goTo(step + 1)
     else await enviar()
+  }
+
+  function voltar() {
+    if (cur.type === 'form' && sub > 0) {
+      setSub(sub - 1)
+      setInvalid([])
+      setMessage('')
+      return
+    }
+    const prev = STEPS[step - 1]
+    goTo(step - 1, prev && prev.type === 'form' ? prev.fields.length - 1 : 0)
   }
 
   // ───────── tela de análise ─────────
@@ -271,7 +290,7 @@ export default function Quiz() {
                 <div className="h-[3px] overflow-hidden rounded-full bg-white/[0.08]">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-acesso-blue-600 to-acesso-cyan transition-all duration-700"
-                    style={{ width: done ? '100%' : active ? '55%' : '0%' }}
+                    style={{ width: done ? '100%' : active ? (s.type === 'form' ? `${Math.round(((sub + 1) / s.fields.length) * 100)}%` : '55%') : '0%' }}
                   />
                 </div>
                 <span className={`text-[0.66rem] font-bold uppercase tracking-[0.14em] ${active ? 'text-acesso-cyan' : done ? 'text-acesso-gray-300' : 'text-acesso-gray-700'}`}>
@@ -294,24 +313,38 @@ export default function Quiz() {
 
           <div className="card mt-8 p-5 sm:p-8">
             {cur.type === 'form' &&
-              cur.fields.map((f) => (
-                <div key={f.key} id={`q-${f.key}`} className="mb-5 last:mb-0">
-                  <label htmlFor={f.key} className="mb-2 block text-[0.72rem] font-bold uppercase tracking-[0.14em] text-acesso-gray-300">
-                    {f.label}
-                  </label>
-                  <input
-                    id={f.key}
-                    name={f.key}
-                    className={`field ${invalid.includes(f.key) ? 'invalid' : ''}`}
-                    type={f.type || 'text'}
-                    inputMode={f.inputMode}
-                    autoComplete={f.autoComplete}
-                    placeholder={f.placeholder}
-                    value={answers[f.key] || ''}
-                    onChange={(e) => setAns(f.key, e.target.value)}
-                  />
-                </div>
-              ))}
+              (() => {
+                const f = cur.fields[Math.min(sub, cur.fields.length - 1)]
+                return (
+                  <div key={f.key} id={`q-${f.key}`} className="anim-up">
+                    <span className="text-[0.7rem] font-bold tracking-[0.14em] text-acesso-cyan">
+                      {String(sub + 1).padStart(2, '0')} / {String(cur.fields.length).padStart(2, '0')}
+                    </span>
+                    <label htmlFor={f.key} className="mt-3 block font-display text-[1.65rem] font-bold leading-[1.1] tracking-[-0.03em] text-white sm:text-[2rem]">
+                      {f.ask}
+                    </label>
+                    <input
+                      id={f.key}
+                      name={f.key}
+                      autoFocus
+                      enterKeyHint={sub === cur.fields.length - 1 ? 'done' : 'next'}
+                      className={`field mt-6 !py-4 !text-[1.1rem] ${invalid.includes(f.key) ? 'invalid' : ''}`}
+                      type={f.type || 'text'}
+                      inputMode={f.inputMode}
+                      autoComplete={f.autoComplete}
+                      placeholder={f.placeholder}
+                      value={answers[f.key] || ''}
+                      onChange={(e) => setAns(f.key, e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          continuar()
+                        }
+                      }}
+                    />
+                  </div>
+                )
+              })()}
 
             {cur.type === 'questions' &&
               cur.questions.map((q, qi) => {
@@ -368,8 +401,8 @@ export default function Quiz() {
       {/* barra de navegação fixa */}
       <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6">
         <div className="glass mx-auto flex max-w-[680px] items-center justify-between gap-3 rounded-full p-2">
-          {step > 0 ? (
-            <button type="button" onClick={() => goTo(step - 1)} className="btn-ghost btn-sm focus-ring !px-5">
+          {step > 0 || sub > 0 ? (
+            <button type="button" onClick={voltar} className="btn-ghost btn-sm focus-ring !px-5">
               <ArrowLeft className="h-4 w-4" />
               Voltar
             </button>
