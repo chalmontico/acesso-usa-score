@@ -81,7 +81,7 @@ export default function Admin() {
       <div style={{background:s.surface,border:'1px solid rgba(30,111,255,0.1)',borderRadius:'4px',padding:'2.5rem 2rem',width:'100%',maxWidth:'380px'}}>
         <div style={{marginBottom:'2rem',textAlign:'center'}}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={asset("/brand/acesso-logo.png")} alt="Acesso" style={{height:'22px',width:'auto'}}/>
+          <img src={asset("/brand/acesso-score-logo.png")} alt="Acesso" style={{height:'22px',width:'auto'}}/>
           <p style={{fontSize:'0.65rem',letterSpacing:'0.2em',textTransform:'uppercase',color:s.whiteMuted,marginTop:'0.5rem'}}>Admin</p>
         </div>
         <input
@@ -116,7 +116,7 @@ export default function Admin() {
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'2rem'}}>
         <div style={{display:'flex',alignItems:'center',gap:'0.3rem'}}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={asset("/brand/acesso-logo.png")} alt="Acesso" style={{height:'20px',width:'auto'}}/>
+          <img src={asset("/brand/acesso-score-logo.png")} alt="Acesso" style={{height:'20px',width:'auto'}}/>
           <span style={{fontSize:'0.65rem',letterSpacing:'0.2em',textTransform:'uppercase',color:s.whiteMuted,marginLeft:'0.8rem'}}>Admin</span>
         </div>
         <button onClick={() => setAuthed(false)} style={{background:'none',border:'1px solid rgba(30,111,255,0.2)',borderRadius:'2px',padding:'0.5rem 1rem',color:s.whiteMuted,fontSize:'0.72rem',cursor:'pointer'}}>Sair</button>
