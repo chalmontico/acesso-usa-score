@@ -1,5 +1,6 @@
 // Envia o lead do Score para o CRM do Acesso OS (matriz).
-// Variáveis na Vercel: ACESSO_OS_LEADS_URL e SITE_LEADS_SECRET (as mesmas do site).
+// O Score não guarda a chave do CRM: envia ao site (acessousa.com/api/score-lead),
+// que repassa ao Acesso OS. Variável na Vercel: SCORE_SYNC_KEY (a mesma nos dois projetos).
 // Nunca lança erro: o diagnóstico deve funcionar mesmo se o CRM estiver fora do ar.
 
 type LeadScore = {
@@ -46,13 +47,13 @@ export function montarPayload(l: LeadScore) {
 }
 
 export async function sendToAcessoOs(l: LeadScore): Promise<boolean> {
-  const url = process.env.ACESSO_OS_LEADS_URL
-  const secret = process.env.SITE_LEADS_SECRET
-  if (!url || !secret) return false
+  const url = process.env.SCORE_CRM_URL || 'https://acessousa.com/api/score-lead'
+  const secret = process.env.SCORE_SYNC_KEY
+  if (!secret) return false
   try {
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-acesso-chave': secret },
+      headers: { 'Content-Type': 'application/json', 'x-score-chave': secret },
       body: JSON.stringify(montarPayload(l)),
     })
     if (!res.ok) console.error('[acesso-os] CRM respondeu', res.status)

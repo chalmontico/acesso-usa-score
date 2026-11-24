@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   }
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key || !process.env.ACESSO_OS_LEADS_URL || !process.env.SITE_LEADS_SECRET) {
+  if (!url || !key || !process.env.SCORE_SYNC_KEY) {
     return NextResponse.json({ error: 'Faltam variáveis de ambiente (banco ou CRM).' }, { status: 500 })
   }
   const res = await fetch(`${url}/rest/v1/leads?order=created_at.asc`, {
