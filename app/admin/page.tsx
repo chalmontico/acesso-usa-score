@@ -44,7 +44,11 @@ export default function Admin() {
       const res = await fetch(asset('/api/admin'), { headers: { 'x-admin-secret': secret } })
       const d = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(d?.error ? `Erro do servidor: ${d.error}` : `Erro ${res.status} ao carregar os leads.`)
+        setError(
+          String(d?.error || '').includes('fetch failed')
+            ? 'O banco de dados do Score não está respondendo (projeto pausado ou apagado no Supabase). Os novos leads já vão para o CRM do Acesso OS.'
+            : d?.error ? `Erro do servidor: ${d.error}` : `Erro ${res.status} ao carregar os leads.`
+        )
       } else {
         setLeads(Array.isArray(d.data) ? d.data : [])
         setAuthed(true)

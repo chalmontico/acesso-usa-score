@@ -24,38 +24,50 @@ export async function POST(request: NextRequest) {
     const score = Math.max(0, Math.min(100, Math.round(Number(body.score) || 0)))
     const nivel = NIVEIS.includes(body.nivel) ? body.nivel : null
 
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-        Prefer: 'return=minimal',
-      },
-      body: JSON.stringify({
-        name: String(answers.nome || 'Sem nome').trim(),
-        email,
-        whatsapp: answers.whatsapp ? String(answers.whatsapp).trim() : null,
-        score,
-        nivel,
-        respostas: answers,
-      }),
-    })
-
-    if (!res.ok) {
-      const detail = await res.text()
-      return NextResponse.json({ error: 'Não foi possível salvar.', detail }, { status: 502 })
-    }
-    // cópia para o CRM do Acesso OS (matriz); não bloqueia o diagnóstico se falhar
-    const crm = await sendToAcessoOs({
-      nome: String(answers.nome || '').trim(),
+    const lead = {
+      name: String(answers.nome || 'Sem nome').trim(),
       email,
       whatsapp: answers.whatsapp ? String(answers.whatsapp).trim() : null,
       score,
       nivel,
       respostas: answers,
+    }
+
+    // 1) CRM do Acesso OS (matriz) é o destino principal
+    const crm = await sendToAcessoOs({
+      nome: lead.name,
+      email,
+      whatsapp: lead.whatsapp,
+      score,
+      nivel,
+      respostas: answers,
     })
-    return NextResponse.json({ success: true, crm })
+
+    // 2) Cópia no banco do Score (reserva). Se o banco estiver fora do ar, não bloqueia.
+    let db = false
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify(lead),
+      })
+      db = res.ok
+      if (!res.ok) console.error('[score] banco respondeu', res.status, await res.text())
+    } catch (e) {
+      console.error('[score] banco inacessível', String(e))
+    }
+
+    if (!crm && !db) {
+      // último recurso: fica nos registros da Vercel para ninguém se perder
+      console.error('[score] LEAD NÃO SALVO', JSON.stringify(lead))
+      return NextResponse.json({ error: 'Não foi possível salvar.' }, { status: 502 })
+    }
+    return NextResponse.json({ success: true, crm, db })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
   }
