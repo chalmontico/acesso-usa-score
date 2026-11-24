@@ -2,8 +2,6 @@
 import { useState } from 'react'
 import { asset } from '@/lib/base'
 
-const SUPABASE_URL = 'https://gedqamkcflteuhlvrabo.supabase.co'
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlZHFhbWtjZmx0ZXVobHZyYWJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NzU3NjAsImV4cCI6MjA5NjQ1MTc2MH0.AKt8e8JPUgZPanBwOog2aJDLBcD3zNHKp7c9TTB2878'
 
 const STATUS_OPTIONS = ['novo','contato_feito','reuniao_agendada','proposta_enviada','fechado','perdido']
 const STATUS_LABELS: Record<string,string> = {
@@ -41,13 +39,16 @@ export default function Admin() {
   async function login() {
     if (secret !== 'acesso2025') { setError('Senha incorreta.'); return }
     setLoading(true)
+    setError('')
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?order=created_at.desc`, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-      })
-      const data = await res.json()
-      setLeads(Array.isArray(data) ? data : [])
-      setAuthed(true)
+      const res = await fetch(asset('/api/admin'), { headers: { 'x-admin-secret': secret } })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(d?.error ? `Erro do servidor: ${d.error}` : `Erro ${res.status} ao carregar os leads.`)
+      } else {
+        setLeads(Array.isArray(d.data) ? d.data : [])
+        setAuthed(true)
+      }
     } catch { setError('Erro de conexão.') }
     setLoading(false)
   }
@@ -64,15 +65,10 @@ export default function Admin() {
   }
 
   async function updateStatus(id: string, status: string) {
-    await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${id}`, {
+    await fetch(asset('/api/admin'), {
       method: 'PATCH',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify({ status })
+      headers: { 'x-admin-secret': secret, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status }),
     })
     setLeads(l => l.map(lead => lead.id === id ? { ...lead, status } : lead))
   }
