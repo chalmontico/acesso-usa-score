@@ -52,6 +52,17 @@ export default function Admin() {
     setLoading(false)
   }
 
+  const [syncMsg, setSyncMsg] = useState('')
+  async function syncCrm() {
+    if (!confirm('Enviar todos os leads do Score para o CRM do Acesso OS? (um por e-mail)')) return
+    setSyncMsg('Enviando…')
+    try {
+      const res = await fetch(asset('/api/admin/sync'), { method: 'POST', headers: { 'x-admin-secret': secret } })
+      const d = await res.json()
+      setSyncMsg(res.ok ? `Pronto: ${d.enviados} enviados, ${d.falhas} falhas (de ${d.total} leads).` : (d.error || 'Falhou.'))
+    } catch { setSyncMsg('Erro de conexão.') }
+  }
+
   async function updateStatus(id: string, status: string) {
     await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${id}`, {
       method: 'PATCH',
@@ -119,10 +130,12 @@ export default function Admin() {
           <img src={asset("/brand/acesso-score-logo.png")} alt="Acesso" style={{height:'20px',width:'auto'}}/>
           <span style={{fontSize:'0.65rem',letterSpacing:'0.2em',textTransform:'uppercase',color:s.whiteMuted,marginLeft:'0.8rem'}}>Admin</span>
         </div>
-        <button onClick={() => setAuthed(false)} style={{background:'none',border:'1px solid rgba(30,111,255,0.2)',borderRadius:'2px',padding:'0.5rem 1rem',color:s.whiteMuted,fontSize:'0.72rem',cursor:'pointer'}}>Sair</button>
+        <div style={{display:'flex',alignItems:'center'}}><button onClick={syncCrm} style={{background:'none',border:'1px solid rgba(63,157,255,0.4)',borderRadius:'2px',padding:'0.5rem 1rem',color:'#3f9dff',fontSize:'0.72rem',cursor:'pointer',marginRight:'0.6rem'}}>Enviar ao CRM</button>
+          <button onClick={() => setAuthed(false)} style={{background:'none',border:'1px solid rgba(30,111,255,0.2)',borderRadius:'2px',padding:'0.5rem 1rem',color:s.whiteMuted,fontSize:'0.72rem',cursor:'pointer'}}>Sair</button></div>
       </div>
 
       {/* Cards de resumo com cores */}
+      {syncMsg && <p style={{fontSize:'0.8rem',color:'#3f9dff',marginBottom:'1rem'}}>{syncMsg}</p>}
       <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'1rem',marginBottom:'2rem'}}>
         {statsCards.map(({ value, label, color }) => (
           <div key={label} style={{background:s.surface,border:`1px solid ${color}25`,borderRadius:'4px',padding:'1.5rem',position:'relative',overflow:'hidden'}}>
