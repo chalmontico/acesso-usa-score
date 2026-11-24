@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { sendToAcessoOs } from '@/lib/crm'
 
 // Credenciais só vêm das variáveis de ambiente da Vercel (nunca no código).
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -45,7 +46,16 @@ export async function POST(request: NextRequest) {
       const detail = await res.text()
       return NextResponse.json({ error: 'Não foi possível salvar.', detail }, { status: 502 })
     }
-    return NextResponse.json({ success: true })
+    // cópia para o CRM do Acesso OS (matriz); não bloqueia o diagnóstico se falhar
+    const crm = await sendToAcessoOs({
+      nome: String(answers.nome || '').trim(),
+      email,
+      whatsapp: answers.whatsapp ? String(answers.whatsapp).trim() : null,
+      score,
+      nivel,
+      respostas: answers,
+    })
+    return NextResponse.json({ success: true, crm })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
   }
