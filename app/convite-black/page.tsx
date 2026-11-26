@@ -63,7 +63,7 @@ function ConviteBlackConteudo() {
       <div className="w-full max-w-md">
         <div className="mb-8 flex justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={asset("/logo-acesso-black.png")} alt="Acesso Black" className="h-auto w-full max-w-[220px]" />
+          <img src={asset("/logo-acesso-black-v2.png")} alt="Acesso Black" className="h-auto w-full max-w-[220px]" />
         </div>
 
         {carregando ? (
